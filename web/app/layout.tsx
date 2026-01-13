@@ -3,6 +3,10 @@ import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserBut
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from '@/components/app-sidebar'
+
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -36,7 +40,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <UserButton />
             </SignedIn>
           </header>
-          {children}
+            <SidebarProvider>
+              <AppSidebar />
+              {children}
+            </SidebarProvider>
         </body>
       </html>
     </ClerkProvider>
