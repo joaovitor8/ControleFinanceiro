@@ -48,6 +48,7 @@
 
 :root {
   --radius: 0.625rem;
+  /* Modo Claro (Padrão neutro, caso seja ativado sem querer) */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -81,38 +82,67 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* --- MODO ESCURO PRETO + VERDE --- */
 .dark {
-  --background: oklch(0.145 0 0);
+  /* Fundo: Preto Profundo (Zinc 950/Black) */
+  --background: oklch(0.10 0.01 240); 
+  
+  /* Texto: Branco quase puro */
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+
+  /* Cards: Um pouco mais claros que o fundo para destacar (Zinc 900) */
+  --card: oklch(0.13 0.02 240);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+
+  /* Popups e Modais */
+  --popover: oklch(0.13 0.02 240);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+
+  /* --- O VERDE NEON (EMERALD VIBRANTE) --- */
+  /* Esta cor será usada em botões principais e destaques */
+  --primary: oklch(0.623 0.214 163.725); 
+  --primary-foreground: oklch(0.10 0.05 163); /* Texto escuro dentro do botão verde */
+
+  /* Cores Secundárias (Cinza Escuro) */
+  --secondary: oklch(0.20 0.02 240);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+
+  /* Elementos mudos/desabilitados */
+  --muted: oklch(0.20 0.02 240);
+  --muted-foreground: oklch(0.65 0 0);
+
+  /* Hover em tabelas e menus */
+  --accent: oklch(0.20 0.02 240);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
+
+  /* Erros (Vermelho) */
+  --destructive: oklch(0.60 0.20 20);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /* Bordas: Sutis (Cinza bem escuro com um toque de verde se quiser, aqui está neutro) */
+  --border: oklch(0.20 0.02 240);
+  --input: oklch(0.20 0.02 240);
+  
+  /* Anel de foco: O VERDE novamente */
+  --ring: oklch(0.623 0.214 163.725);
+
+  /* --- CORES DOS GRÁFICOS (RECHARTS) --- */
+  /* Ajustei para tons de Verde, Teal e Branco para combinar */
+  --chart-1: oklch(0.623 0.214 163.725); /* Verde Principal */
+  --chart-2: oklch(0.50 0.15 170);       /* Verde Escuro */
+  --chart-3: oklch(0.80 0.10 160);       /* Verde Claro */
+  --chart-4: oklch(0.70 0 0);            /* Cinza Claro */
+  --chart-5: oklch(0.90 0 0);            /* Branco */
+
+  /* --- SIDEBAR (BARRA LATERAL) --- */
+  --sidebar: oklch(0.10 0.01 240); /* Mesma cor do fundo */
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-primary: oklch(0.623 0.214 163.725); /* Verde */
+  --sidebar-primary-foreground: oklch(0.10 0.05 163);
+  --sidebar-accent: oklch(0.15 0.02 240);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-border: oklch(0.20 0.02 240);
+  --sidebar-ring: oklch(0.623 0.214 163.725);
 }
 
 @layer base {
@@ -122,4 +152,9 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Efeito extra de brilho neon que você pediu */
+@utility neon-shadow {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2), 0 0 20px rgba(16, 185, 129, 0.1);
 }

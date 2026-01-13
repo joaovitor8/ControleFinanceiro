@@ -1,7 +1,6 @@
 
-
 export default function Home() {
   return (
-    <main>Teste</main>
+    <div>aaaaaaaaaaaaaaaaaa</div>
   );
 }
