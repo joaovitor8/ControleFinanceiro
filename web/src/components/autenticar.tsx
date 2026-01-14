@@ -1,4 +1,3 @@
-// Arquivo: /web/components/AddTransaction.tsx
 import { useAuth } from "@clerk/nextjs"; // Importa o hook do Clerk
 import axios from "axios";
 
@@ -12,7 +11,6 @@ export function AddTransaction() {
     // 3. Faz a "ligação" para o Backend
     try {
       await axios.post('http://127.0.0.1:3333/db/transactions', {
-        // O corpo da mensagem (o pedido)
         title: "Salário",
         amount: 5000,
         type: "INCOME"
