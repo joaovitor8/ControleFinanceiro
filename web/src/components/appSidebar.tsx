@@ -1,5 +1,9 @@
 import { Home, Inbox, Settings } from "lucide-react"
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/src/components/ui/sidebar"
+import { Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from "@/src/components/ui/sidebar"
+
+import {SignedIn, UserButton } from "@clerk/nextjs";
+import { Bot } from "lucide-react";
+
 
 // Menu items.
 const items = [
@@ -23,6 +27,19 @@ const items = [
 export function AppSidebar() {
   return (
     <Sidebar>
+      <SidebarHeader>
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-emerald-500 flex items-center justify-center">
+              <Bot className="h-5 w-5 text-zinc-950" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white">
+              FinSmart <span className="text-emerald-500">AI</span>
+            </span>
+          </div>
+        </div>
+      </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -42,6 +59,14 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter>
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   )
 }

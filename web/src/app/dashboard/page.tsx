@@ -1,6 +1,11 @@
+import { Input } from "@/src/components/ui/input";
+
 
 export default function Home() {
   return (
-    <div>fdgsdfgdf</div>
+    <div>
+      <Input />
+      <p></p>
+    </div>
   );
 }

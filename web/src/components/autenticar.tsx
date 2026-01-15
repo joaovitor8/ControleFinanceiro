@@ -1,30 +1,30 @@
-import { useAuth } from "@clerk/nextjs"; // Importa o hook do Clerk
+// frontend/src/components/autenticar.tsx (Corrigido)
+import { useAuth } from "@clerk/nextjs"; 
 import axios from "axios";
 
-export function AddTransaction() {
-  const { getToken } = useAuth(); // 1. Pega a função para gerar o token
+export function Autenticar() {
+  const { getToken } = useAuth(); 
 
   async function handleSave() {
-    // 2. Gera o "Crachá" (Token JWT) atual do usuário logado
-    const token = await getToken(); 
-
-    // 3. Faz a "ligação" para o Backend
     try {
-      await axios.post('http://127.0.0.1:3333/db/transactions', {
-        title: "Salário",
-        amount: 5000,
-        type: "INCOME"
-      }, {
-        // 4. Envia o Crachá no Cabeçalho (Header) da carta
-        headers: {
-          Authorization: `Bearer ${token}` 
+      const token = await getToken(); 
+
+      // CORREÇÃO AQUI:
+      await axios.post(
+        'http://127.0.0.1:3333/db/autenticar', 
+        {}, // <--- 2º argumento: O "Corpo" (Body) vai vazio
+        {   // <--- 3º argumento: As Configurações (Headers vão aqui)
+          headers: {
+            Authorization: `Bearer ${token}` 
+          }
         }
-      });
-      alert("Salvo com sucesso!");
+      );
+      
+      alert("Autenticado com sucesso!");
     } catch (error) {
-      console.error("O backend rejeitou ou deu erro", error);
+      console.error("Erro:", error);
     }
   }
 
-  return <button onClick={handleSave}>Salvar</button>
+  return <button onClick={handleSave}>Sincronizar Conta</button>
 }
