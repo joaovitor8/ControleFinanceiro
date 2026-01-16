@@ -8,23 +8,33 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        String   @id // Será o ID do Clerk (ex: user_2b3...)
+model Users {
+  id        String   @id
   email     String   @unique
   name      String?
-  transactions Transaction[]
-  createdAt DateTime @default(now())
+  passwords String[]
 }
 
-model Transaction {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  title       String
-  amount      Decimal  // Use Decimal para dinheiro!
-  type        String   // "INCOME" (Ganho) ou "EXPENSE" (Gasto)
-  category    String   // "Alimentação", "Assinatura", "Salário"
-  isRecurring Boolean  @default(false) // Para assinaturas
-  date        DateTime
-  createdAt   DateTime @default(now())
+model roles {
+  id        Int      @id
+  name      String   @unique
+  description String?
+}
+
+model user_roles {
+  userId    String
+  roleId    Int
+
+  @@unique([userId, roleId])
+}
+
+model assinaturas {
+  id          Int      @id
+  name        String
+  description String?
+}
+
+model contasPagar {
+  id          Int      @id
+  description String
 }
