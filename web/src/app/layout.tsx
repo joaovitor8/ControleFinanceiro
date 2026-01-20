@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { ClerkProvider } from '@clerk/nextjs'
+import { AuthSync } from "../components/authenticate";
 
 
 // const geistSans = Geist({
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <ClerkProvider>
       <html lang="pt-br">
         <body> {/** className={`${geistSans.variable} ${geistMono.variable} antialiased`} */}
+          <AuthSync />
           {children}
         </body>
       </html>
