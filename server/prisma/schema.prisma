@@ -9,77 +9,68 @@ datasource db {
 
 // ---------------------------------------------
 
-// Usuários
+
+// Tabela do Usuario
 model User {
-  id        String   @id 
-  email     String   @unique
-  name      String?
-  
-  createdAt DateTime @default(now())
+  id String @id
+  email String @unique
+  name String?
+  date DateTime @default(now()) // Quando o usuario se cadastro ( Entrou pela primeira vez )
 
-  // Relacionamento original (RBAC)
-  userRoles UserRole[] 
-
-  // Adicionamos a conexão com as suas tabelas financeiras
-  // Sem isso, você não saberia de quem é a conta ou assinatura
-  subscriptions   Subscription[]
-  accountsPayable AccountsPayable[]
-
-  @@map("users")
+  userRoles User_Roles[] // Lista de conexões na tabela pivô
+  ContasPagar ContaPagar[]
 }
 
-// Papéis
-model Role {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
-  description String?
 
-  userRoles   UserRole[]
+// Tabela de Funções ( Se o usuario é Admin, Premium ou Gratis )
+model Roles {
+  id  Int @id @default(autoincrement())
+  name String @unique
 
-  @@map("roles")
+  userRoles User_Roles[] // Lista de conexões na tabela pivô
 }
 
-// Tabela Pivô
-model UserRole {
-  userId String
-  roleId Int
 
+// Tabela de ligação entre Usuarios e Funções
+model User_Roles {
+  userId String  // String porque o ID do User é String
+  roleId Int     // Int porque o ID do Role é Int
+
+  // Relações
+  // O campo 'userId' e 'roleId' desta tabela aponta para o campo 'id' da tabela User e Roles"
   user   User @relation(fields: [userId], references: [id])
-  role   Role @relation(fields: [roleId], references: [id])
+  role   Roles @relation(fields: [roleId], references: [id])
 
-  @@id([userId, roleId])
-  @@map("user_roles")
+  // Chave Primária Composta
+  @@id([userId, roleId]) // Não pode existir uma linha repetida com o mesmo par userId + roleId
 }
 
-// ---------------------------------------------
+// ---
 
-// Assinaturas
-model Subscription {
-  id          Int     @id @default(autoincrement())
-  name        String
-  description String?
+
+
+model ContaPagar {
+  id String   @id @default(uuid()) // Gera um ID único automático
+  name String
   
-  // Sugestão importante: Adicione 'price' para a IA poder calcular gastos depois
-  price       Decimal? @db.Decimal(10, 2) 
 
-  // Agora sabemos a quem pertence essa assinatura
-  userId      String
-  user        User    @relation(fields: [userId], references: [id])
+  
+  amount      Decimal  // Use Decimal para dinheiro!
+  
+  // Categorização (Essencial para seus gráficos)
+  type        String   // "INCOME" ou "EXPENSE"
+  category    String   // "Assinatura", "Lazer", etc.
+  
+  // --- A PARTE DA RECORRÊNCIA (Para seu formulário AddExpenses) ---
+  // Note o "?" que torna o campo opcional (nem tudo é recorrente)
+  isRecurring Boolean  @default(false)
+  frequency   String?  // "Mensal", "Anual"
+  nextDate    DateTime? // Quando vence a próxima?
+  
+  // Auditoria
+  date        DateTime @default(now()) // Data que aconteceu
 
-  @@map("assinaturas")
-}
-
-// Contas a Pagar
-model AccountsPayable {
-  id          Int      @id @default(autoincrement())
-  description String
-  amount      Decimal  @db.Decimal(10, 2)
-  dueDate     DateTime
-  isPaid      Boolean  @default(false)
-
-  // Agora sabemos a quem pertence essa conta
+  // Dono (Relacionamento 1-N)
   userId      String
   user        User     @relation(fields: [userId], references: [id])
-
-  @@map("contas_pagar")
 }
