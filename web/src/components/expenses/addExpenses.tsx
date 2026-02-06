@@ -12,6 +12,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/src/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
 
+import axios from "axios"
+
 // Schema de Validação (Regras do formulário)
 const formSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -35,7 +37,13 @@ export function AddExpenses() {
   // Função de Envio (Aqui você conectará com o Backend depois)
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log("Enviando para o back:", values)
-    // Aqui virá sua chamada Axios post('/transactions')
+
+    axios.post('/db/expense', values)
+     .then(() => {
+        console.log("Despesa adicionada com sucesso!")
+        console.log(values)
+    })
+
     setOpen(false) // Fecha o modal
     form.reset()   // Limpa o form
   }
@@ -46,7 +54,7 @@ export function AddExpenses() {
         {/* Botão que abre o modal - Estilo Verde Neon */}
         <Button className="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold gap-2">
           <PlusCircle className="w-4 h-4" />
-          Novo Gasto Recorrente
+          Novo Gasto
         </Button>
       </DialogTrigger>
       
@@ -104,7 +112,7 @@ export function AddExpenses() {
                     <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
                       <SelectItem value="assinatura">📺 Assinatura</SelectItem>
                       <SelectItem value="fixa">🏠 Conta Fixa</SelectItem>
-                      <SelectItem value="investimento">📈 Investimento</SelectItem>
+                      {/* <SelectItem value="investimento">📈 Investimento</SelectItem> */}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -133,7 +141,7 @@ export function AddExpenses() {
 
             <DialogFooter className="mt-4">
               <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
-                Salvar Recorrência
+                Salvar Despesa
               </Button>
             </DialogFooter>
 

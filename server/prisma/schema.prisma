@@ -7,7 +7,9 @@ datasource db {
   provider = "postgresql"
 }
 
+
 // ---------------------------------------------
+
 
 
 // Tabela do Usuario
@@ -18,7 +20,8 @@ model User {
   date DateTime @default(now()) // Quando o usuario se cadastro ( Entrou pela primeira vez )
 
   userRoles User_Roles[] // Lista de conexões na tabela pivô
-  ContasPagar ContaPagar[]
+  Expenses Expense[]
+  // Income Income[]
 }
 
 
@@ -45,32 +48,34 @@ model User_Roles {
   @@id([userId, roleId]) // Não pode existir uma linha repetida com o mesmo par userId + roleId
 }
 
+
 // ---
 
 
-
-model ContaPagar {
+model Expense {
   id String   @id @default(uuid()) // Gera um ID único automático
   name String
-  
+  amount Decimal // Valor
 
+  category String   // "Assinatura", "Lazer", etc.
+
+  frequency String  // "Mensal", "Anual"
+  nextDate DateTime // Quando vence
   
-  amount      Decimal  // Use Decimal para dinheiro!
-  
-  // Categorização (Essencial para seus gráficos)
-  type        String   // "INCOME" ou "EXPENSE"
-  category    String   // "Assinatura", "Lazer", etc.
-  
-  // --- A PARTE DA RECORRÊNCIA (Para seu formulário AddExpenses) ---
-  // Note o "?" que torna o campo opcional (nem tudo é recorrente)
-  isRecurring Boolean  @default(false)
-  frequency   String?  // "Mensal", "Anual"
-  nextDate    DateTime? // Quando vence a próxima?
-  
-  // Auditoria
-  date        DateTime @default(now()) // Data que aconteceu
+  date DateTime @default(now()) // Data que aconteceu
 
   // Dono (Relacionamento 1-N)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId String
+  user User     @relation(fields: [userId], references: [id])
 }
+
+// model Income{
+//   id String   @id @default(uuid()) // Gera um ID único automático
+//   name String
+//   amount Decimal
+
+
+//   // Dono (Relacionamento 1-N)
+//   userId String
+//   user User     @relation(fields: [userId], references: [id])
+// }

@@ -3,7 +3,7 @@ import cors from '@fastify/cors'
 import 'dotenv/config'
 
 import { Authenticate } from './authenticate';
-import { Expenses } from './expenses';
+import { Expenses } from './expense';
 
 
 // logger: true faz ele mostrar no terminal quando recebe requisições (útil para debug)
