@@ -3,7 +3,7 @@ import cors from '@fastify/cors'
 import 'dotenv/config'
 
 import { Authenticate } from './authenticate';
-import { Expenses } from './expense';
+import { AccountsPayable } from './accountsPayable';
 
 
 // logger: true faz ele mostrar no terminal quando recebe requisições (útil para debug)
@@ -20,7 +20,7 @@ app.register(cors, {
 
 // Registro de Rotas
 app.register(Authenticate)
-app.register(Expenses)
+app.register(AccountsPayable)
 
 
 // Tenta rodar na porta 3333. O host '0.0.0.0' é necessário para o Docker/Render funcionarem bem depois.

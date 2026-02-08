@@ -13,6 +13,12 @@ export async function Authenticate(app: FastifyInstance) {
       return reply.status(401).send({ error: "Token não fornecido" });
     }
 
+    const freeRole = await prisma.roles.findUnique({
+    where: { name: 'FREE' }
+    })
+
+    if (!freeRole) throw new Error("Rode o seed primeiro!")
+
     try {
       // 1. Validar Token no Clerk
       const token = authHeader.split(" ")[1];
@@ -44,6 +50,12 @@ export async function Authenticate(app: FastifyInstance) {
             id: userId, // Usamos o ID do Clerk como chave primária
             email: email,
             name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(),
+
+            userRoles: {
+              create: {
+                roleId: freeRole.id // Conecta ao ID do cargo FREE
+              }
+            }
           },
         });
       }

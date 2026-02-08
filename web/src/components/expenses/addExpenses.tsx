@@ -13,6 +13,7 @@ import { Input } from "@/src/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
 
 import axios from "axios"
+import { useUser } from "@clerk/nextjs"
 
 // Schema de Validação (Regras do formulário)
 const formSchema = z.object({
@@ -24,6 +25,7 @@ const formSchema = z.object({
 
 export function AddExpenses() {
   const [open, setOpen] = useState(false)
+  const { user } = useUser(); // Pega o usuário logado
 
   // Configuração do Form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -35,17 +37,26 @@ export function AddExpenses() {
   })
 
   // Função de Envio (Aqui você conectará com o Backend depois)
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Enviando para o back:", values)
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) return alert("Usuário não autenticado!")
 
-    axios.post('/db/expense', values)
-     .then(() => {
-        console.log("Despesa adicionada com sucesso!")
-        console.log(values)
-    })
-
-    setOpen(false) // Fecha o modal
-    form.reset()   // Limpa o form
+    try {
+      // Envia para o seu Backend
+      await axios.post('http://localhost:3333/db/expense', {
+        userId: user.id, // ID do Clerk
+        name: values.name,
+        amount: values.amount,
+        type: values.type,
+        frequency: values.frequency
+      });
+      
+      setOpen(false) // Fecha o modal
+      form.reset()   // Limpa o form
+      
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert("Erro ao salvar despesa");
+    }
   }
 
   return (

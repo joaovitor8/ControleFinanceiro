@@ -12,18 +12,16 @@ export function AuthSync() {
 
   useEffect(() => {
     const syncUser = async () => {
-      // 1. Se não tá logado ou já sincronizou nesta sessão, para tudo.
+      // Se não tá logado ou já sincronizou nesta sessão, para tudo.
       if (!isSignedIn || hasSynced.current) return;
 
       try {
         const token = await getToken();
         
-        // 2. Chama o backend silenciosamente
-        await axios.post(
-          'http://localhost:3333/db/authenticate',
-          {},
+        // Chama o backend silenciosamente
+        await axios.post('http://localhost:3333/db/authenticate', {},
           {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: token }
           }
         );
 
@@ -37,6 +35,5 @@ export function AuthSync() {
     syncUser();
   }, [isSignedIn, getToken, userId]); // Roda sempre que o status de login mudar
 
-  // Este componente não precisa renderizar nada visualmente
   return null; 
 }

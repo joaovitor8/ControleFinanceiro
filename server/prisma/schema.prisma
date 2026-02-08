@@ -20,8 +20,8 @@ model User {
   date DateTime @default(now()) // Quando o usuario se cadastro ( Entrou pela primeira vez )
 
   userRoles User_Roles[] // Lista de conexões na tabela pivô
-  Expenses Expense[]
-  // Income Income[]
+  AccountsPayable AccountsPayable[]
+  // AccountsReceivable AccountsReceivable[]
 }
 
 
@@ -52,7 +52,8 @@ model User_Roles {
 // ---
 
 
-model Expense {
+// Contas a Pagar
+model AccountsPayable {
   id String   @id @default(uuid()) // Gera um ID único automático
   name String
   amount Decimal // Valor
@@ -69,7 +70,9 @@ model Expense {
   user User     @relation(fields: [userId], references: [id])
 }
 
-// model Income{
+
+// Contas a Receber
+// model AccountsReceivable{
 //   id String   @id @default(uuid()) // Gera um ID único automático
 //   name String
 //   amount Decimal
