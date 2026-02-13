@@ -10,8 +10,7 @@ import { AccountsPayable } from './accountsPayable';
 const app = fastify({ logger: true })
 
 
-// Isso permite que seu Frontend (localhost:3000) consiga acessar este Backend (localhost:3333)
-// Sem isso, o navegador bloqueia tudo por segurança.
+// Isso permite que seu Frontend consiga acessar este Backend
 app.register(cors, {
   origin: true,
   methods: ["GET", "POST", "PUT", "DELETE"]

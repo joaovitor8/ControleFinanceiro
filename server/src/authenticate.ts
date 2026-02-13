@@ -10,14 +10,14 @@ export async function Authenticate(app: FastifyInstance) {
 
     const authHeader = request.headers.authorization
 
-    // 1. Validação Básica do Header
+    // Validação Básica do Header
     if (!authHeader) {
       console.error("❌ Erro: Header Authorization não encontrado.");
       return reply.status(401).send({ error: "Token não fornecido" });
     }
 
     try {
-      // 2. Extrair o Token (Remove o prefixo 'Bearer ')
+      // Extrair o Token (Remove o prefixo 'Bearer ')
       const token = authHeader.split(" ")[1];
       
       if (!token) {
@@ -25,19 +25,18 @@ export async function Authenticate(app: FastifyInstance) {
         return reply.status(400).send({ error: "Formato de token inválido. Use: Bearer <token>" });
       }
 
-      // 3. Validar Token no Clerk
-      // Se a chave secreta estiver errada no .env, vai falhar aqui.
+      // Validar Token no Clerk
       const decodedToken = await clerkClient.verifyToken(token);
       const userId = decodedToken.sub; // Esse é o ID do usuário (ex: user_2b...)
 
       console.log(`👤 Usuário Validado no Clerk: ${userId}`);
 
-      // 4. Verificar se existe no Banco Local (Prisma)
+      // Verificar se existe no Banco Local (Prisma)
       let user = await prisma.user.findUnique({
         where: { id: userId },
       });
 
-      // 5. Se não existir, CRIA O USUÁRIO (Sincronização)
+      // Se não existir, CRIA O USUÁRIO (Sincronização)
       if (!user) {
         console.log("🆕 Usuário novo detectado. Buscando dados no Clerk...");
 
@@ -50,7 +49,7 @@ export async function Authenticate(app: FastifyInstance) {
             return reply.status(400).send({ error: "Email é obrigatório." });
         }
 
-        // Cria no banco (Sem Roles por enquanto, para não dar erro)
+        // Cria no banco
         user = await prisma.user.create({
           data: {
             id: userId,
@@ -66,7 +65,7 @@ export async function Authenticate(app: FastifyInstance) {
 
       console.log("--- 🏁 FIM DO PROCESSO ---\n");
 
-      // 6. Retorna o usuário para o Front
+      // Retorna o usuário para o Front
       return reply.status(200).send({ 
         message: "Sincronizado",
         user: user 
@@ -74,7 +73,6 @@ export async function Authenticate(app: FastifyInstance) {
 
     } catch (error) {
       console.error("🔥 ERRO FATAL NO SERVIDOR:", error);
-      // Retorna o erro detalhado para ajudar no debug
       return reply.status(500).send({ 
         error: "Erro interno no servidor", 
         details: String(error) 
