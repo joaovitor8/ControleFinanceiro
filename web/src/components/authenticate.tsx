@@ -7,33 +7,51 @@ import { useEffect, useRef } from "react";
 export function AuthSync() {
   const { getToken, isSignedIn, userId } = useAuth();
   
-  // O useRef garante que a gente não fique chamando a API mil vezes sem querer
+  // O useRef serve para impedir que o código rode 2x (comum no React Strict Mode)
   const hasSynced = useRef(false);
 
   useEffect(() => {
     const syncUser = async () => {
-      // Se não tá logado ou já sincronizou nesta sessão, para tudo.
-      if (!isSignedIn || hasSynced.current) return;
+      // 1. Verificações de Segurança:
+      // Se não tá logado, se não tem ID ou se já rodou, para aqui.
+      if (!isSignedIn || !userId || hasSynced.current) return;
 
       try {
+        // 2. Marca como rodado imediatamente
+        hasSynced.current = true;
+
+        // 3. Pega o Token do Clerk
         const token = await getToken();
-        
-        // Chama o backend silenciosamente
-        await axios.post('http://localhost:3333/db/authenticate', {},
+
+        if (!token) {
+            console.log("⚠️ AuthSync: Token ainda não gerado.");
+            hasSynced.current = false; // Permite tentar de novo se falhar
+            return;
+        }
+
+        // 4. Chamada para o Backend
+        // ATENÇÃO: O Axios.post recebe 3 argumentos: (URL, BODY, CONFIG)
+        await axios.post(
+          'http://localhost:3333/db/authenticate', 
+          {}, // O Body vai vazio (pois os dados estão no Token)
           {
-            headers: { Authorization: token }
+            headers: {
+              // AQUI ESTAVA O ERRO: Precisa ter a palavra "Bearer " antes
+              Authorization: `Bearer ${token}` 
+            }
           }
         );
 
-        console.log("✅ Usuário sincronizado com o banco de dados!");
-        hasSynced.current = true; // Marca que já foi feito
+        console.log("✅ AuthSync: Usuário sincronizado com sucesso!");
+
       } catch (error) {
-        console.error("❌ Erro ao sincronizar usuário:", error);
+        console.error("❌ AuthSync Erro:", error);
+        // Se der erro de conexão, permitimos tentar de novo recarregando a página
       }
     };
 
     syncUser();
-  }, [isSignedIn, getToken, userId]); // Roda sempre que o status de login mudar
+  }, [isSignedIn, getToken, userId]);
 
-  return null; 
+  return null; // Componente invisível
 }

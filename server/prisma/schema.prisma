@@ -19,34 +19,34 @@ model User {
   name String?
   date DateTime @default(now()) // Quando o usuario se cadastro ( Entrou pela primeira vez )
 
-  userRoles User_Roles[] // Lista de conexões na tabela pivô
+  // userRoles User_Roles[] // Lista de conexões na tabela pivô
   AccountsPayable AccountsPayable[]
   // AccountsReceivable AccountsReceivable[]
 }
 
 
 // Tabela de Funções ( Se o usuario é Admin, Premium ou Gratis )
-model Roles {
-  id  Int @id @default(autoincrement())
-  name String @unique
+// model Roles {
+//   id  Int @id @default(autoincrement())
+//   name String @unique
 
-  userRoles User_Roles[] // Lista de conexões na tabela pivô
-}
+//   userRoles User_Roles[] // Lista de conexões na tabela pivô
+// }
 
 
 // Tabela de ligação entre Usuarios e Funções
-model User_Roles {
-  userId String  // String porque o ID do User é String
-  roleId Int     // Int porque o ID do Role é Int
+// model User_Roles {
+//   userId String  // String porque o ID do User é String
+//   roleId Int     // Int porque o ID do Role é Int
 
-  // Relações
-  // O campo 'userId' e 'roleId' desta tabela aponta para o campo 'id' da tabela User e Roles"
-  user   User @relation(fields: [userId], references: [id])
-  role   Roles @relation(fields: [roleId], references: [id])
+//   // Relações
+//   // O campo 'userId' e 'roleId' desta tabela aponta para o campo 'id' da tabela User e Roles"
+//   user   User @relation(fields: [userId], references: [id])
+//   role   Roles @relation(fields: [roleId], references: [id])
 
-  // Chave Primária Composta
-  @@id([userId, roleId]) // Não pode existir uma linha repetida com o mesmo par userId + roleId
-}
+//   // Chave Primária Composta
+//   @@id([userId, roleId]) // Não pode existir uma linha repetida com o mesmo par userId + roleId
+// }
 
 
 // ---
