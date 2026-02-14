@@ -1,35 +1,19 @@
-import { clerkClient } from "@clerk/clerk-sdk-node";
 import { FastifyInstance } from "fastify";
-import { prisma } from "../lib/prisma";
+import { prisma } from "../../lib/prisma";
+import { verifyToken } from "../middlewares/verify-token";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 
 // Rota de Autenticação
 
 export async function Authenticate(app: FastifyInstance) {
-  app.post("/db/authenticate", async (request: any, reply: any) => {
-    console.log("--- 🏁 RECEBENDO REQUISIÇÃO DE AUTENTICAÇÃO ---");
-
-    const authHeader = request.headers.authorization
-
-    // Validação Básica do Header
-    if (!authHeader) {
-      console.error("❌ Erro: Header Authorization não encontrado.");
-      return reply.status(401).send({ error: "Token não fornecido" });
-    }
+  app.post("/db/authenticate", {preHandler: [verifyToken]}, async (request: any, reply: any) => {
 
     try {
-      // Extrair o Token (Remove o prefixo 'Bearer ')
-      const token = authHeader.split(" ")[1];
-      
-      if (!token) {
-        console.error("❌ Erro: Token veio vazio ou mal formatado.");
-        return reply.status(400).send({ error: "Formato de token inválido. Use: Bearer <token>" });
+      const userId = request.user_id; // Esse é o ID do usuário (ex: user_2b...)
+
+      if (!userId) {
+        return reply.status(401).send({ error: "Usuário não identificado pelo middleware." });
       }
-
-      // Validar Token no Clerk
-      const decodedToken = await clerkClient.verifyToken(token);
-      const userId = decodedToken.sub; // Esse é o ID do usuário (ex: user_2b...)
-
-      console.log(`👤 Usuário Validado no Clerk: ${userId}`);
 
       // Verificar se existe no Banco Local (Prisma)
       let user = await prisma.user.findUnique({
@@ -39,13 +23,12 @@ export async function Authenticate(app: FastifyInstance) {
 
       // Se não existir, CRIA O USUÁRIO (Sincronização)
       if (!user) {
-        console.log("🆕 Usuário novo detectado. Buscando dados no Clerk...");
 
         // Busca o ID do cargo FREE que criamos no Seed
         const freeRole = await prisma.roles.findUnique({ where: { name: 'FREE' } });
 
         if (!freeRole) {
-           return reply.status(500).send({ error: "ERRO CRÍTICO: Cargo FREE não encontrado. Rode o Seed." });
+          return reply.status(500).send({ error: "ERRO CRÍTICO: Cargo FREE não encontrado. Rode o Seed." });
         }
 
         // Busca o email e nome lá no Clerk para salvar no nosso banco
@@ -53,8 +36,8 @@ export async function Authenticate(app: FastifyInstance) {
         const email = clerkUser.emailAddresses[0]?.emailAddress;
 
         if (!email) {
-            console.error("❌ Erro: Email não encontrado no cadastro do Clerk.");
-            return reply.status(400).send({ error: "Email é obrigatório." });
+          console.error("❌ Erro: Email não encontrado no cadastro do Clerk.");
+          return reply.status(400).send({ error: "Email é obrigatório." });
         }
 
         // Cria no banco
@@ -74,12 +57,8 @@ export async function Authenticate(app: FastifyInstance) {
           include: { userRoles: { include: { role: true } } }
         });
         
-        console.log("✅ Usuário criado no banco com sucesso!");
-      } else {
-        console.log("✅ Usuário já existia no banco.");
+        console.log("✅");
       }
-
-      console.log("--- 🏁 FIM DO PROCESSO ---\n");
 
       // Retorna o usuário para o Front
       return reply.status(200).send({ 

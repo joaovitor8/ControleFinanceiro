@@ -4,6 +4,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 // Defina quais rotas são PÚBLICAS (Login, Cadastro e Webhooks)
 const isPublicRoute = createRouteMatcher([
+  '/',
   '/sign-in(.*)', 
   '/sign-up(.*)',
   '/api/webhooks(.*)',

@@ -2,8 +2,8 @@ import fastify from 'fastify'
 import cors from '@fastify/cors'
 import 'dotenv/config'
 
-import { Authenticate } from './authenticate';
-import { AccountsPayable } from './accountsPayable';
+import { Authenticate } from './rotas/authenticate';
+import { AccountsPayable } from './rotas/accountsPayable';
 
 
 // logger: true faz ele mostrar no terminal quando recebe requisições (útil para debug)
@@ -12,7 +12,7 @@ const app = fastify({ logger: true })
 
 // Isso permite que seu Frontend consiga acessar este Backend
 app.register(cors, {
-  origin: true,
+  origin: "http://localhost:3000",
   methods: ["GET", "POST", "PUT", "DELETE"]
 })
 
