@@ -34,11 +34,19 @@ export async function Authenticate(app: FastifyInstance) {
       // Verificar se existe no Banco Local (Prisma)
       let user = await prisma.user.findUnique({
         where: { id: userId },
+        include: { userRoles: { include: { role: true } } } // Traz o nome do cargo junto
       });
 
       // Se não existir, CRIA O USUÁRIO (Sincronização)
       if (!user) {
         console.log("🆕 Usuário novo detectado. Buscando dados no Clerk...");
+
+        // Busca o ID do cargo FREE que criamos no Seed
+        const freeRole = await prisma.roles.findUnique({ where: { name: 'FREE' } });
+
+        if (!freeRole) {
+           return reply.status(500).send({ error: "ERRO CRÍTICO: Cargo FREE não encontrado. Rode o Seed." });
+        }
 
         // Busca o email e nome lá no Clerk para salvar no nosso banco
         const clerkUser = await clerkClient.users.getUser(userId);
@@ -55,7 +63,15 @@ export async function Authenticate(app: FastifyInstance) {
             id: userId,
             email: email,
             name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(),
+
+            // Aqui está a mágica: Cria a entrada na tabela User_Roles junto!
+            userRoles: {
+              create: {
+                roleId: freeRole.id
+              }
+            }
           },
+          include: { userRoles: { include: { role: true } } }
         });
         
         console.log("✅ Usuário criado no banco com sucesso!");
