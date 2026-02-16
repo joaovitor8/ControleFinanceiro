@@ -9,7 +9,12 @@ import { Bot } from "lucide-react";
 const items = [
   {
     title: "Dashboard",
-    url: "/dashboard",
+    url: "/main/dashboard",
+    icon: Home,
+  },
+  {
+    title: "Transações",
+    url: "/main/transacoes",
     icon: Home,
   },
   {

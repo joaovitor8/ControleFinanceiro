@@ -77,7 +77,7 @@ export default function Home() {
               </SignUpButton>
             </SignedOut>
             <SignedIn>
-              <Link href="/dashboard">
+              <Link href="/main/dashboard">
                 <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-lg h-12 px-8 neon-shadow">
                   Ir para Dashboard
                 </Button>

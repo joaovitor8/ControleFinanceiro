@@ -39,7 +39,7 @@ export function ViewExpenses() {
   const totalAmount = MOCK_DATA.reduce((acc, item) => acc + item.amount, 0)
 
   return (
-    <Card className="col-span-1 h-full bg-zinc-950 border-zinc-800 text-zinc-100 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
+    <Card className="col-span-1 bg-zinc-950 border-zinc-800 text-zinc-100 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
