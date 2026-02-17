@@ -1,13 +1,14 @@
-import { SidebarProvider, SidebarTrigger } from "@/src/components/ui/sidebar"
-import { AppSidebar } from "@/src/components/appSidebar"
+// import { SidebarProvider, SidebarTrigger } from "@/src/components/ui/sidebar"
+// import { AppSidebar } from "@/src/components/appSidebar"
+
+import { Toaster } from '@/src/components/ui/sonner'
 
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarTrigger />
+    <main>
       {children}
-    </SidebarProvider>
+      <Toaster richColors position="top-right" />
+    </main>
   );
 }
