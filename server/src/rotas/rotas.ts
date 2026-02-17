@@ -9,12 +9,15 @@ export async function Route(app: FastifyInstance) {
 
   // Pegar
   app.get('/db/', (request: any, reply: any) => {});
+  
+
+  app.get('/db/???/:id', (request: any, reply: any) => {});
 
 
   // Atualizar
-  app.put('/db/', (request: any, reply: any) => {});
+  app.put('/db/???/:id', (request: any, reply: any) => {});
 
 
   // Deletar
-  app.delete('/db/', (request: any, reply: any) => {});
+  app.delete('/db/???/:id', (request: any, reply: any) => {});
 }

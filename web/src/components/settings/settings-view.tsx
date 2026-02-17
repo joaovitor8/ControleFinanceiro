@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { Bell, Globe, Lock, User } from "lucide-react"
@@ -6,16 +7,17 @@ import { Input } from "@/src/components/ui/input"
 import { Label } from "@/src/components/ui/label"
 import { Switch } from "@/src/components/ui/switch"
 import { Separator } from "@/src/components/ui/separator"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
 import { toast } from "sonner"
-import axios from "axios"
+
+import { useUser } from "@clerk/nextjs"
 
 
 export function SettingsView() {
+
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div>
-        <h2 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">Configuracoes</h2>
+        <h2 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">Configurações</h2>
         <p className="text-sm text-muted-foreground mt-1">Gerencie suas preferencias e conta</p>
       </div>
 
@@ -28,23 +30,20 @@ export function SettingsView() {
           <h3 className="text-sm font-semibold text-foreground">Perfil</h3>
         </div>
         <div className="flex items-center gap-4 mb-6">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src="https://api.dicebear.com/9.x/notionists/svg?seed=finsmart" />
-            <AvatarFallback className="bg-emerald-500/20 text-emerald-400 text-lg font-semibold">LM</AvatarFallback>
-          </Avatar>
+          <img src={useUser().user?.imageUrl} alt="foto perfil" className="h-12 w-12 rounded-full object-cover" />
           <div>
-            <p className="text-base font-semibold text-foreground">Lucas Martins</p>
-            <p className="text-sm text-muted-foreground">lucas@finsmart.app</p>
+            <p className="text-base font-semibold text-foreground">{useUser().user?.firstName} {useUser().user?.lastName}</p>
+            <p className="text-sm text-muted-foreground">...</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <Label className="text-sm text-foreground">Nome</Label>
-            <Input disabled defaultValue="Lucas Martins" className="bg-secondary/50 border-border" />
+            <Input disabled defaultValue={`${useUser().user?.firstName}`} className="bg-secondary/50 border-border" />
           </div>
           <div className="flex flex-col gap-2">
             <Label className="text-sm text-foreground">Email</Label>
-            <Input disabled defaultValue="lucas@finsmart.app" className="bg-secondary/50 border-border" />
+            <Input disabled defaultValue={useUser().user?.emailAddresses[0]?.emailAddress} className="bg-secondary/50 border-border" />
           </div>
         </div>
       </div>
@@ -55,13 +54,13 @@ export function SettingsView() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/10">
             <Bell className="h-4 w-4 text-sky-400" />
           </div>
-          <h3 className="text-sm font-semibold text-foreground">Notificacoes</h3>
+          <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-foreground">Notificacoes por email</p>
-              <p className="text-xs text-muted-foreground">Receba resumos semanais no seu email</p>
+              <p className="text-sm font-medium text-foreground">Notificações por email</p>
+              <p className="text-xs text-muted-foreground">Receba alertas importantes por email</p>
             </div>
             <Switch defaultChecked />
           </div>
@@ -127,7 +126,7 @@ export function SettingsView() {
         onClick={() => toast.success("Configuracoes salvas com sucesso!")}
         className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 shadow-lg shadow-emerald-500/20"
       >
-        Salvar Alteracoes
+        Salvar Alterações
       </Button>
 
     </div>

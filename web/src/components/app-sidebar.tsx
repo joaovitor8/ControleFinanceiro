@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { LayoutDashboard, Receipt, Target, Settings, TrendingUp } from "lucide-react"
 import { cn } from "@/src/lib/utils"
 
-import {SignedIn, UserButton } from "@clerk/nextjs";
+import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
 
 
 const navItems = [
@@ -61,8 +61,8 @@ export function AppSidebar() {
             <UserButton />
           </SignedIn>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">Lucas Martins</p>
-            <p className="text-xs text-muted-foreground truncate">lucas@finsmart.app</p>
+            <p className="text-sm font-medium text-foreground truncate">{useUser().user?.firstName}</p>
+            <p className="text-xs text-muted-foreground truncate">{useUser().user?.emailAddresses[0]?.emailAddress}</p>
           </div>
         </div>
       </div>

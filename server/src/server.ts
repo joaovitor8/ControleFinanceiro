@@ -4,6 +4,7 @@ import 'dotenv/config'
 
 import { Authenticate } from './rotas/authenticate';
 import { AccountsPayable } from './rotas/accountsPayable';
+import { Settings } from './rotas/settings';
 
 
 // logger: true faz ele mostrar no terminal quando recebe requisições (útil para debug)
@@ -20,6 +21,7 @@ app.register(cors, {
 // Registro de Rotas
 app.register(Authenticate)
 app.register(AccountsPayable)
+app.register(Settings)
 
 
 // Tenta rodar na porta 3333. O host '0.0.0.0' é necessário para o Docker/Render funcionarem bem depois.
