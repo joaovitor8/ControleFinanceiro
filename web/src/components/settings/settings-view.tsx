@@ -49,7 +49,7 @@ export function SettingsView() {
       </div>
 
       {/* Notifications */}
-      <div className="rounded-xl border border-border bg-card p-6">
+      {/* <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-center gap-3 mb-5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/10">
             <Bell className="h-4 w-4 text-sky-400" />
@@ -64,7 +64,7 @@ export function SettingsView() {
             </div>
             <Switch defaultChecked />
           </div>
-          {/* <Separator className="bg-border" />
+          <Separator className="bg-border" />
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-foreground">Alertas de metas</p>
@@ -79,9 +79,9 @@ export function SettingsView() {
               <p className="text-xs text-muted-foreground">Lembre antes de contas pendentes vencerem</p>
             </div>
             <Switch />
-          </div> */}
+          </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Preferences */}
       <div className="rounded-xl border border-border bg-card p-6">
@@ -123,6 +123,7 @@ export function SettingsView() {
       </div> */}
 
       <Button
+        disabled
         onClick={() => toast.success("Configuracoes salvas com sucesso!")}
         className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 shadow-lg shadow-emerald-500/20"
       >

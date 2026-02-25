@@ -23,6 +23,7 @@ model User {
   userRoles User_Roles[]
   AccountsPayable AccountsPayable[]
   // AccountsReceivable AccountsReceivable[]
+  Goal Goal[]
 }
 
 
@@ -71,6 +72,22 @@ model AccountsPayable {
   userId String
   user User     @relation(fields: [userId], references: [id])
 }
+
+
+// Metas de Economia
+model Goal {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  target    Float    // Valor Alvo
+  current   Float    @default(0) // Valor Atual
+  icon      String   @default("target") // plane, car, home, shield, target
+  color     String   @default("emerald") // emerald, blue, amber, purple
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
 
 
 // Contas a Receber

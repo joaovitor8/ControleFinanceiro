@@ -3,6 +3,7 @@ import { prisma } from "../../lib/prisma";
 import { verifyToken } from "../middlewares/verify-token";
 import { clerkClient } from "@clerk/clerk-sdk-node";
 
+
 // Rota de Autenticação
 
 export async function Authenticate(app: FastifyInstance) {

@@ -1,70 +1,106 @@
 "use client"
 
-import { useState } from "react"
-import { Plus, Plane, Car, Shield, Home, Target } from "lucide-react"
+import { useState, useEffect } from "react"
+import axios from "axios"
+import { useAuth } from "@clerk/nextjs"
+import { Plus, Plane, Car, Shield, Home, Target, Loader2 } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { Progress } from "@/src/components/ui/progress"
 import { Input } from "@/src/components/ui/input"
-import { goals as initialGoals, formatCurrency, type Goal } from "@/src/lib/data"
 import { toast } from "sonner"
+import { NewGoalSheet } from "@/src/components/goals/addGoalDialog"
+
+
+interface Goal {
+  id: string
+  name: string
+  target: number
+  current: number
+  icon: string
+  color: string
+}
 
 const iconMap: Record<string, React.ElementType> = {
   plane: Plane,
   car: Car,
   shield: Shield,
   home: Home,
+  target: Target,
 }
 
 const colorMap: Record<string, { bg: string; text: string; progress: string; border: string }> = {
-  emerald: {
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-400",
-    progress: "[&>div]:bg-emerald-500",
-    border: "hover:border-emerald-500/30",
-  },
-  blue: {
-    bg: "bg-sky-500/10",
-    text: "text-sky-400",
-    progress: "[&>div]:bg-sky-500",
-    border: "hover:border-sky-500/30",
-  },
-  amber: {
-    bg: "bg-amber-500/10",
-    text: "text-amber-400",
-    progress: "[&>div]:bg-amber-500",
-    border: "hover:border-amber-500/30",
-  },
-  purple: {
-    bg: "bg-purple-500/10",
-    text: "text-purple-400",
-    progress: "[&>div]:bg-purple-500",
-    border: "hover:border-purple-500/30",
-  },
+  emerald: { bg: "bg-emerald-500/10", text: "text-emerald-400", progress: "[&>div]:bg-emerald-500", border: "hover:border-emerald-500/30" },
+  blue: { bg: "bg-sky-500/10", text: "text-sky-400", progress: "[&>div]:bg-sky-500", border: "hover:border-sky-500/30" },
+  amber: { bg: "bg-amber-500/10", text: "text-amber-400", progress: "[&>div]:bg-amber-500", border: "hover:border-amber-500/30" },
+  purple: { bg: "bg-purple-500/10", text: "text-purple-400", progress: "[&>div]:bg-purple-500", border: "hover:border-purple-500/30" },
 }
 
-export function GoalsView() {
-  const [goalsList, setGoalsList] = useState<Goal[]>(initialGoals)
-  const [addAmounts, setAddAmounts] = useState<Record<string, string>>({})
 
-  const handleAddValue = (goalId: string) => {
+export function GoalsView() {
+  const { getToken } = useAuth()
+  const [goalsList, setGoalsList] = useState<Goal[]>([]) // Começa vazio
+  const [addAmounts, setAddAmounts] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
+  const [isSheetOpen, setIsSheetOpen] = useState(false) // Controle do Modal
+
+  // 1. BUSCAR METAS DO BACKEND
+  async function fetchGoals() {
+    try {
+      const token = await getToken();
+      
+      const response = await axios.get('http://localhost:3333/goals', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      setGoalsList(response.data)
+    } catch (error) {
+      console.error("Erro ao buscar metas", error)
+      toast.error("Não foi possível carregar as metas.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Carrega ao abrir a página
+  useEffect(() => {
+    fetchGoals()
+  }, [])
+
+  // 2. ADICIONAR VALOR (PATCH)
+  const handleAddValue = async (goalId: string) => {
     const amt = parseFloat(addAmounts[goalId] || "0")
     if (amt <= 0) return
 
+    // Optimistic UI (Atualiza a tela antes do backend responder para parecer instantâneo)
+    const oldList = [...goalsList]
     setGoalsList((prev) =>
       prev.map((g) => {
         if (g.id === goalId) {
-          const newCurrent = Math.min(g.current + amt, g.target)
-          if (newCurrent >= g.target) {
-            toast.success(`Parabens! Voce atingiu a meta "${g.name}"!`)
-          } else {
-            toast.success(`${formatCurrency(amt)} adicionado a "${g.name}"`)
-          }
+          const newCurrent = g.current + amt
+          if (newCurrent >= g.target) toast.success(`Parabéns! Meta "${g.name}" atingida!`)
+          else toast.success(`Valor adicionado a "${g.name}"`)
           return { ...g, current: newCurrent }
         }
         return g
       })
     )
     setAddAmounts((prev) => ({ ...prev, [goalId]: "" }))
+
+    try {
+      const token = await getToken();
+      await axios.patch(`http://localhost:3333/goals/${goalId}/add`, 
+        { amount: amt },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+    } catch (error) {
+      toast.error("Erro ao salvar valor. Desfazendo...")
+      setGoalsList(oldList) // Reverte se der erro
+    }
+  }
+
+  // Loading State
+  if (loading) {
+    return <div className="flex justify-center p-10"><Loader2 className="animate-spin text-emerald-500" /></div>
   }
 
   return (
@@ -74,11 +110,23 @@ export function GoalsView() {
           <h2 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">Metas Financeiras</h2>
           <p className="text-sm text-muted-foreground mt-1">Acompanhe o progresso dos seus objetivos</p>
         </div>
-        <Button className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold shadow-lg shadow-emerald-500/20">
+        
+        {/* BOTÃO QUE ABRE O SHEET */}
+        <Button 
+          onClick={() => setIsSheetOpen(true)}
+          className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold shadow-lg shadow-emerald-500/20"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nova Meta
         </Button>
       </div>
+
+      {/* COMPONENTE SHEET (Escondido até clicar no botão) */}
+      <NewGoalSheet 
+        open={isSheetOpen} 
+        onOpenChange={setIsSheetOpen} 
+        onSuccess={fetchGoals} // Recarrega a lista quando criar uma nova
+      />
 
       {goalsList.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 px-6">
@@ -89,18 +137,24 @@ export function GoalsView() {
           <p className="text-sm text-muted-foreground text-center max-w-xs mb-4">
             Crie sua primeira meta financeira e comece a acompanhar seu progresso.
           </p>
-          <Button className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold">
+          <Button 
+            onClick={() => setIsSheetOpen(true)}
+            className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Criar Meta
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {goalsList.map((goal) => {
             const Icon = iconMap[goal.icon] || Target
-            const colors = colorMap[goal.color] || colorMap.emerald
-            const percentage = Math.round((goal.current / goal.target) * 100)
-            const remaining = goal.target - goal.current
+            // Fallback para cor caso venha nula
+            const colors = colorMap[goal.color] || colorMap.emerald 
+            
+            // Cálculos
+            const percentage = goal.target > 0 ? Math.min(Math.round((goal.current / goal.target) * 100), 100) : 0
+            const remaining = Math.max(goal.target - goal.current, 0)
 
             return (
               <div
@@ -115,7 +169,7 @@ export function GoalsView() {
                     <div>
                       <h3 className="text-base font-semibold text-foreground">{goal.name}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Faltam {formatCurrency(remaining)}
+                        Faltam {remaining.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                       </p>
                     </div>
                   </div>
@@ -130,11 +184,15 @@ export function GoalsView() {
                 <div className="flex items-center justify-between mb-5">
                   <div>
                     <p className="text-xs text-muted-foreground">Atual</p>
-                    <p className="text-sm font-semibold text-foreground font-mono">{formatCurrency(goal.current)}</p>
+                    <p className="text-sm font-semibold text-foreground font-mono">
+                      {goal.current.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">Alvo</p>
-                    <p className="text-sm font-semibold text-foreground font-mono">{formatCurrency(goal.target)}</p>
+                    <p className="text-sm font-semibold text-foreground font-mono">
+                      {goal.target.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </p>
                   </div>
                 </div>
 
@@ -155,7 +213,7 @@ export function GoalsView() {
                     className="bg-emerald-500 text-background hover:bg-emerald-600 font-medium h-9 px-4 shrink-0"
                   >
                     <Plus className="h-3.5 w-3.5 mr-1" />
-                    Adicionar
+                    +
                   </Button>
                 </div>
               </div>
