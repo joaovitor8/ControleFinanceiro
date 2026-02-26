@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { useAuth } from "@clerk/nextjs"
-import { Plus, Plane, Car, Shield, Home, Target, Loader2 } from "lucide-react"
+import { Plus, Plane, Car, Shield, Home, Target, Loader2, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { Progress } from "@/src/components/ui/progress"
 import { Input } from "@/src/components/ui/input"
 import { toast } from "sonner"
 import { NewGoalSheet } from "@/src/components/goals/addGoalDialog"
+import { EditGoalSheet } from "@/src/components/goals/editGoalDialog"
 
 
 interface Goal {
@@ -42,13 +43,16 @@ export function GoalsView() {
   const [addAmounts, setAddAmounts] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false) // Controle do Modal
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null)
+
 
   // 1. BUSCAR METAS DO BACKEND
   async function fetchGoals() {
     try {
       const token = await getToken();
       
-      const response = await axios.get('http://localhost:3333/goals', {
+      const response = await axios.get('http://localhost:3333/db/goals', {
         headers: { Authorization: `Bearer ${token}` }
       })
       
@@ -61,47 +65,43 @@ export function GoalsView() {
     }
   }
 
+
   // Carrega ao abrir a página
   useEffect(() => {
     fetchGoals()
   }, [])
 
-  // 2. ADICIONAR VALOR (PATCH)
-  const handleAddValue = async (goalId: string) => {
-    const amt = parseFloat(addAmounts[goalId] || "0")
-    if (amt <= 0) return
 
-    // Optimistic UI (Atualiza a tela antes do backend responder para parecer instantâneo)
-    const oldList = [...goalsList]
-    setGoalsList((prev) =>
-      prev.map((g) => {
-        if (g.id === goalId) {
-          const newCurrent = g.current + amt
-          if (newCurrent >= g.target) toast.success(`Parabéns! Meta "${g.name}" atingida!`)
-          else toast.success(`Valor adicionado a "${g.name}"`)
-          return { ...g, current: newCurrent }
-        }
-        return g
-      })
-    )
-    setAddAmounts((prev) => ({ ...prev, [goalId]: "" }))
+  // Função para abrir o modal de Edição
+  const openEdit = (goal: Goal) => {
+    setGoalToEdit(goal)
+    setIsEditOpen(true)
+  }
+
+
+  // Função para Deletar
+  const handleDeleteGoal = async (goalId: string) => {
+    const confirmar = confirm("Tem certeza que deseja excluir esta meta?")
+    if (!confirmar) return
 
     try {
-      const token = await getToken();
-      await axios.patch(`http://localhost:3333/goals/${goalId}/add`, 
-        { amount: amt },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+      const token = await getToken()
+      await axios.delete(`http://localhost:3333/goals/${goalId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      toast.success("Meta excluída com sucesso!")
+      fetchGoals() // Recarrega a lista
     } catch (error) {
-      toast.error("Erro ao salvar valor. Desfazendo...")
-      setGoalsList(oldList) // Reverte se der erro
+      toast.error("Erro ao excluir meta.")
     }
   }
+
 
   // Loading State
   if (loading) {
     return <div className="flex justify-center p-10"><Loader2 className="animate-spin text-emerald-500" /></div>
   }
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -122,11 +122,8 @@ export function GoalsView() {
       </div>
 
       {/* COMPONENTE SHEET (Escondido até clicar no botão) */}
-      <NewGoalSheet 
-        open={isSheetOpen} 
-        onOpenChange={setIsSheetOpen} 
-        onSuccess={fetchGoals} // Recarrega a lista quando criar uma nova
-      />
+      <NewGoalSheet open={isSheetOpen} onOpenChange={setIsSheetOpen} onSuccess={fetchGoals} />
+      <EditGoalSheet open={isEditOpen} onOpenChange={setIsEditOpen} onSuccess={fetchGoals} goal={goalToEdit} />
 
       {goalsList.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 px-6">
@@ -215,6 +212,16 @@ export function GoalsView() {
                     <Plus className="h-3.5 w-3.5 mr-1" />
                     +
                   </Button>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-400 hover:text-white" onClick={() => openEdit(goal)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-400 hover:text-rose-500" onClick={() => handleDeleteGoal(goal.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )

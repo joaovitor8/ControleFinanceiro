@@ -4,8 +4,9 @@ import { prisma } from "../../lib/prisma";
 import { verifyToken } from "../middlewares/verify-token";
 
 export async function GoalsRoutes(app: FastifyInstance) {
-  
-  // 1. LISTAR METAS DO USUÁRIO
+
+
+  // Pegar todas as metas do usuário logado
   app.get("/db/goals", { preHandler: [verifyToken] }, async (request) => {
     const userId = (request as any).user_id;
 
@@ -17,7 +18,8 @@ export async function GoalsRoutes(app: FastifyInstance) {
     return goals;
   });
 
-  // 2. CRIAR NOVA META
+
+  // Criar nova meta
   app.post("/db/goals", { preHandler: [verifyToken] }, async (request, reply) => {
     const createGoalSchema = z.object({
       name: z.string(),
@@ -44,21 +46,68 @@ export async function GoalsRoutes(app: FastifyInstance) {
     return reply.status(201).send(goal);
   });
 
-  // 3. ADICIONAR VALOR À META (Depositar)
-  app.patch("/db/goals/:id/add", { preHandler: [verifyToken] }, async (request, reply) => {
+
+  // Atualizar progresso da meta
+  app.put("/db/goals/:id/progress", { preHandler: [verifyToken] }, async (request, reply) => {
     const paramsSchema = z.object({ id: z.string() });
-    const bodySchema = z.object({ amount: z.number() });
+    const bodySchema = z.object({
+      current: z.number()
+    });
 
     const { id } = paramsSchema.parse(request.params);
-    const { amount } = bodySchema.parse(request.body);
+    const data = bodySchema.parse(request.body);
+    const userId = (request as any).user_id;
 
     const goal = await prisma.goal.update({
-      where: { id },
+      where: { id: id, userId: userId },
       data: {
-        current: { increment: amount }
+        current: data.current
       }
     });
 
     return goal;
   });
+
+
+  // Atualizar meta existente
+  app.put("/db/goals/:id", { preHandler: [verifyToken] }, async (request, reply) => {
+    const paramsSchema = z.object({ id: z.string() });
+    const bodySchema = z.object({
+      name: z.string(),
+      target: z.number(),
+      icon: z.string(),
+      color: z.string(),
+    });
+
+    const { id } = paramsSchema.parse(request.params);
+    const data = bodySchema.parse(request.body);
+    const userId = (request as any).user_id;
+
+    const goal = await prisma.goal.update({
+      where: { id: id, userId: userId },
+      data: {
+        name: data.name,
+        target: data.target,
+        icon: data.icon,
+        color: data.color
+      }
+    });
+
+    return goal;
+  });
+
+
+  // Deletar meta
+  app.delete("/db/goals/:id", { preHandler: [verifyToken] }, async (request, reply) => {
+    const paramsSchema = z.object({ id: z.string() });
+    const { id } = paramsSchema.parse(request.params);
+    const userId = (request as any).user_id;
+
+    await prisma.goal.delete({
+      where: { id: id, userId: userId }
+    });
+
+    return reply.status(204).send();
+  });
+
 }
