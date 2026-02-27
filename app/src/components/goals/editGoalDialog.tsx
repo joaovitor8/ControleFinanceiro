@@ -12,6 +12,7 @@ import { Label } from "@/src/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/src/components/ui/radio-group"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/src/components/ui/sheet"
 
+
 const icons = [
   { value: "target", label: "Objetivo", icon: Target },
   { value: "plane", label: "Viagem", icon: Plane },
@@ -20,12 +21,14 @@ const icons = [
   { value: "shield", label: "Reserva", icon: Shield },
 ]
 
+
 const colors = [
   { value: "emerald", bg: "bg-emerald-500", ring: "ring-emerald-500" },
   { value: "blue", bg: "bg-sky-500", ring: "ring-sky-500" },
   { value: "amber", bg: "bg-amber-500", ring: "ring-amber-500" },
   { value: "purple", bg: "bg-purple-500", ring: "ring-purple-500" },
 ]
+
 
 type Goal = { id: string, name: string, target: number, icon: string, color: string }
 
@@ -36,7 +39,8 @@ type Props = {
   goal: Goal | null
 }
 
-export function EditGoalSheet({ open, onOpenChange, onSuccess, goal }: Props) {
+
+export const EditGoalSheet = ({ open, onOpenChange, onSuccess, goal }: Props) => {
   const { getToken } = useAuth()
   const [loading, setLoading] = useState(false)
   
@@ -45,7 +49,7 @@ export function EditGoalSheet({ open, onOpenChange, onSuccess, goal }: Props) {
   const [selectedIcon, setSelectedIcon] = useState("target")
   const [selectedColor, setSelectedColor] = useState("emerald")
 
-  // Quando o modal abrir e a "goal" chegar, preenchemos os campos
+
   useEffect(() => {
     if (goal) {
       setName(goal.name)
@@ -55,6 +59,7 @@ export function EditGoalSheet({ open, onOpenChange, onSuccess, goal }: Props) {
     }
   }, [goal])
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!goal) return
@@ -62,8 +67,8 @@ export function EditGoalSheet({ open, onOpenChange, onSuccess, goal }: Props) {
 
     try {
       const token = await getToken()
-      // Aqui usamos PUT e o ID da meta
-      await axios.put(`http://localhost:3333/db/goals/${goal.id}`, {
+
+      await axios.put(`/api/db/goals/${goal.id}`, {
         name,
         target: parseFloat(target),
         icon: selectedIcon,
@@ -83,6 +88,7 @@ export function EditGoalSheet({ open, onOpenChange, onSuccess, goal }: Props) {
     }
   }
 
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-card border-border w-full sm:max-w-lg overflow-y-auto">
@@ -91,19 +97,17 @@ export function EditGoalSheet({ open, onOpenChange, onSuccess, goal }: Props) {
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 px-1">
-          {/* 1. NOME */}
+
           <div className="flex flex-col gap-2">
             <Label htmlFor="edit-name">Nome do Objetivo</Label>
             <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-secondary/50 border-border" />
           </div>
 
-          {/* 2. ALVO */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="edit-target">Novo Valor Alvo (R$)</Label>
             <Input id="edit-target" type="number" step="0.01" min="1" value={target} onChange={(e) => setTarget(e.target.value)} required className="bg-secondary/50 border-border font-mono text-lg" />
           </div>
 
-          {/* 3. ÍCONE */}
           <div className="flex flex-col gap-3">
             <Label>Ícone</Label>
             <RadioGroup value={selectedIcon} onValueChange={setSelectedIcon} className="grid grid-cols-5 gap-2">

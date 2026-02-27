@@ -13,7 +13,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { RadioGroup, RadioGroupItem } from "@/src/components/ui/radio-group"
 
 
-// Ícones disponíveis para escolha
+// Ícones
 const icons = [
   { value: "target", label: "Objetivo", icon: Target },
   { value: "plane", label: "Viagem", icon: Plane },
@@ -22,7 +22,7 @@ const icons = [
   { value: "shield", label: "Reserva", icon: Shield },
 ]
 
-// Cores disponíveis
+// Cores
 const colors = [
   { value: "emerald", bg: "bg-emerald-500", ring: "ring-emerald-500" },
   { value: "blue", bg: "bg-sky-500", ring: "ring-sky-500" },
@@ -38,16 +38,17 @@ type Props = {
 }
 
 
-export function NewGoalSheet({ open, onOpenChange, onSuccess }: Props) {
+export const NewGoalSheet = ({ open, onOpenChange, onSuccess }: Props) => {
   const { user } = useUser()
   const { getToken } = useAuth()
   const [loading, setLoading] = useState(false)
   
-  // States do Formulário
+  // Formulário
   const [name, setName] = useState("")
   const [target, setTarget] = useState("")
   const [selectedIcon, setSelectedIcon] = useState("target")
   const [selectedColor, setSelectedColor] = useState("emerald")
+
 
   const resetForm = () => {
     setName("")
@@ -55,6 +56,7 @@ export function NewGoalSheet({ open, onOpenChange, onSuccess }: Props) {
     setSelectedIcon("target")
     setSelectedColor("emerald")
   }
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,7 +66,7 @@ export function NewGoalSheet({ open, onOpenChange, onSuccess }: Props) {
     try {
       const token = await getToken();
 
-      await axios.post('http://localhost:3333/db/goals', {
+      await axios.post('/api/db/goals', {
         name,
         target: parseFloat(target), // Converte string para number
         icon: selectedIcon,
@@ -98,19 +100,16 @@ export function NewGoalSheet({ open, onOpenChange, onSuccess }: Props) {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 px-1">
           
-          {/* 1. Nome da Meta */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="name" className="text-sm font-medium text-foreground">Nome do Objetivo</Label>
             <Input id="name" placeholder="Ex: Viagem para Europa, PS5..." value={name} onChange={(e) => setName(e.target.value)} required className="bg-secondary/50 border-border" />
           </div>
 
-          {/* 2. Valor Alvo */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="target" className="text-sm font-medium text-foreground">Quanto você precisa? (R$)</Label>
             <Input id="target" type="number" step="0.01" min="1" placeholder="0,00" value={target} onChange={(e) => setTarget(e.target.value)} required className="bg-secondary/50 border-border font-mono text-lg" />
           </div>
 
-          {/* 3. Seleção Visual de Ícone */}
           <div className="flex flex-col gap-3">
             <Label className="text-sm font-medium text-foreground">Ícone</Label>
             <RadioGroup value={selectedIcon} onValueChange={setSelectedIcon} className="grid grid-cols-5 gap-2">
@@ -131,17 +130,12 @@ export function NewGoalSheet({ open, onOpenChange, onSuccess }: Props) {
             </RadioGroup>
           </div>
 
-          {/* 4. Seleção Visual de Cor */}
           <div className="flex flex-col gap-3">
             <Label className="text-sm font-medium text-foreground">Cor do Card</Label>
             <RadioGroup value={selectedColor} onValueChange={setSelectedColor} className="flex gap-4">
               {colors.map((c) => (
-                <label
-                  key={c.value}
-                  className={`relative flex items-center justify-center cursor-pointer group`}
-                >
+                <label key={c.value} className={`relative flex items-center justify-center cursor-pointer group`}>
                   <RadioGroupItem value={c.value} className="sr-only" />
-                  {/* Círculo da cor */}
                   <div className={`h-10 w-10 rounded-full ${c.bg} transition-all ${
                     selectedColor === c.value ? `ring-2 ring-offset-2 ring-offset-zinc-950 ${c.ring} scale-110` : "opacity-70 group-hover:opacity-100"
                   }`} />
@@ -150,12 +144,7 @@ export function NewGoalSheet({ open, onOpenChange, onSuccess }: Props) {
             </RadioGroup>
           </div>
 
-          {/* Botão de Salvar */}
-          <Button
-            type="submit"
-            disabled={loading || !name || !target}
-            className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 shadow-lg shadow-emerald-500/20 mt-4"
-          >
+          <Button type="submit" disabled={loading || !name || !target} className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 shadow-lg shadow-emerald-500/20 mt-4" >
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

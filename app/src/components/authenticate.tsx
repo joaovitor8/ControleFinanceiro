@@ -31,7 +31,7 @@ export function AuthSync() {
 
         //Chamada para o Backend
         await axios.post(
-          'http://localhost:3333/db/authenticate', 
+          '/api/db/authenticate', 
           {}, // O Body vai vazio (pois os dados estão no Token)
           {
             headers: {

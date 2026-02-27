@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { useAuth } from "@clerk/nextjs"
+
+import { toast } from "sonner"
 import { Plus, Plane, Car, Shield, Home, Target, Loader2, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { Progress } from "@/src/components/ui/progress"
 import { Input } from "@/src/components/ui/input"
-import { toast } from "sonner"
+
 import { NewGoalSheet } from "@/src/components/goals/addGoalDialog"
 import { EditGoalSheet } from "@/src/components/goals/editGoalDialog"
 
@@ -21,6 +23,7 @@ interface Goal {
   color: string
 }
 
+
 const iconMap: Record<string, React.ElementType> = {
   plane: Plane,
   car: Car,
@@ -28,6 +31,7 @@ const iconMap: Record<string, React.ElementType> = {
   home: Home,
   target: Target,
 }
+
 
 const colorMap: Record<string, { bg: string; text: string; progress: string; border: string }> = {
   emerald: { bg: "bg-emerald-500/10", text: "text-emerald-400", progress: "[&>div]:bg-emerald-500", border: "hover:border-emerald-500/30" },
@@ -37,7 +41,7 @@ const colorMap: Record<string, { bg: string; text: string; progress: string; bor
 }
 
 
-export function GoalsView() {
+export const GoalsView = () => {
   const { getToken } = useAuth()
   const [goalsList, setGoalsList] = useState<Goal[]>([]) // Começa vazio
   const [addAmounts, setAddAmounts] = useState<Record<string, string>>({})
@@ -47,12 +51,12 @@ export function GoalsView() {
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null)
 
 
-  // 1. BUSCAR METAS DO BACKEND
+  // BUSCAR METAS DO BACKEND
   async function fetchGoals() {
     try {
       const token = await getToken();
       
-      const response = await axios.get('http://localhost:3333/db/goals', {
+      const response = await axios.get('/api/db/goals', {
         headers: { Authorization: `Bearer ${token}` }
       })
       
@@ -86,13 +90,59 @@ export function GoalsView() {
 
     try {
       const token = await getToken()
-      await axios.delete(`http://localhost:3333/goals/${goalId}`, {
+      await axios.delete(`/api/db/goals/${goalId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       toast.success("Meta excluída com sucesso!")
       fetchGoals() // Recarrega a lista
     } catch (error) {
+      console.error("Erro ao excluir meta:", error)
       toast.error("Erro ao excluir meta.")
+    }
+  }
+
+
+  // Função para adicionar valor ao progresso da meta
+  const handleAddValue = async (goalId: string) => {
+
+    // Pega o valor digitado no input
+    const amountString = addAmounts[goalId]
+    if (!amountString) return
+
+    const amountToAdd = parseFloat(amountString)
+    if (isNaN(amountToAdd) || amountToAdd <= 0) return
+
+    // Encontra a meta na lista para descobrir o valor 'current' atual
+    const goal = goalsList.find(g => g.id === goalId)
+    if (!goal) return
+
+    // Soma o valor atual com o novo valor
+    const newCurrentValue = goal.current + amountToAdd
+
+    try {
+      const token = await getToken()
+      
+      // Envia o novo valor total para o backend
+      await axios.put(`/api/db/goals/${goalId}/progress`, {
+        current: newCurrentValue
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      toast.success("Valor adicionado com sucesso!")
+      
+      // Limpa apenas o input desta meta específica
+      setAddAmounts(prev => {
+        const newState = { ...prev }
+        delete newState[goalId]
+        return newState
+      })
+      
+      // Atualiza a lista na tela
+      fetchGoals()
+    } catch (error) {
+      console.error("Erro ao adicionar valor:", error)
+      toast.error("Erro ao atualizar o progresso da meta.")
     }
   }
 
@@ -110,18 +160,13 @@ export function GoalsView() {
           <h2 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">Metas Financeiras</h2>
           <p className="text-sm text-muted-foreground mt-1">Acompanhe o progresso dos seus objetivos</p>
         </div>
-        
-        {/* BOTÃO QUE ABRE O SHEET */}
-        <Button 
-          onClick={() => setIsSheetOpen(true)}
-          className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold shadow-lg shadow-emerald-500/20"
-        >
+
+        <Button  onClick={() => setIsSheetOpen(true)} className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold shadow-lg shadow-emerald-500/20" >
           <Plus className="h-4 w-4 mr-2" />
           Nova Meta
         </Button>
       </div>
 
-      {/* COMPONENTE SHEET (Escondido até clicar no botão) */}
       <NewGoalSheet open={isSheetOpen} onOpenChange={setIsSheetOpen} onSuccess={fetchGoals} />
       <EditGoalSheet open={isEditOpen} onOpenChange={setIsEditOpen} onSuccess={fetchGoals} goal={goalToEdit} />
 
@@ -146,10 +191,9 @@ export function GoalsView() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {goalsList.map((goal) => {
             const Icon = iconMap[goal.icon] || Target
-            // Fallback para cor caso venha nula
+
             const colors = colorMap[goal.color] || colorMap.emerald 
             
-            // Cálculos
             const percentage = goal.target > 0 ? Math.min(Math.round((goal.current / goal.target) * 100), 100) : 0
             const remaining = Math.max(goal.target - goal.current, 0)
 
@@ -173,10 +217,7 @@ export function GoalsView() {
                   <span className={`text-sm font-bold font-mono ${colors.text}`}>{percentage}%</span>
                 </div>
 
-                <Progress
-                  value={percentage}
-                  className={`h-2.5 bg-secondary mb-4 ${colors.progress}`}
-                />
+                <Progress value={percentage} className={`h-2.5 bg-secondary mb-4 ${colors.progress}`} />
 
                 <div className="flex items-center justify-between mb-5">
                   <div>
@@ -194,26 +235,12 @@ export function GoalsView() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    placeholder="R$ 0,00"
-                    value={addAmounts[goal.id] || ""}
-                    onChange={(e) => setAddAmounts((prev) => ({ ...prev, [goal.id]: e.target.value }))}
-                    className="bg-secondary/50 border-border text-sm font-mono h-9"
-                  />
-                  <Button
-                    onClick={() => handleAddValue(goal.id)}
-                    disabled={!addAmounts[goal.id] || parseFloat(addAmounts[goal.id]) <= 0}
-                    size="sm"
-                    className="bg-emerald-500 text-background hover:bg-emerald-600 font-medium h-9 px-4 shrink-0"
-                  >
+                  <Input type="number" step="0.01" min="0.01" placeholder="R$ 0,00" value={addAmounts[goal.id] || ""} onChange={(e) => setAddAmounts((prev) => ({ ...prev, [goal.id]: e.target.value }))} className="bg-secondary/50 border-border text-sm font-mono h-9" />
+                  <Button onClick={() => handleAddValue(goal.id)} disabled={!addAmounts[goal.id] || parseFloat(addAmounts[goal.id]) <= 0} size="sm" className="bg-emerald-500 text-background hover:bg-emerald-600 font-medium h-9 px-4 shrink-0" >
                     <Plus className="h-3.5 w-3.5 mr-1" />
-                    +
                   </Button>
                 </div>
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex flex-col items-end gap-2 mt-4">
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-400 hover:text-white" onClick={() => openEdit(goal)}>
                       <Pencil className="h-3.5 w-3.5" />
