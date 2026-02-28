@@ -29,7 +29,7 @@ type Props = {
   onSave: (tx: Transaction) => void
 }
 
-export function NewTransactionModal({ open, onOpenChange, onSave }: Props) {
+export function NewMonthlyFeesModal({ open, onOpenChange, onSave }: Props) {
   const [loading, setLoading] = useState(false)
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")

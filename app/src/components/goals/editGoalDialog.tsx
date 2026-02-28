@@ -1,3 +1,5 @@
+// Arquivo responsável pela edição de metas, permitindo que os usuários atualizem
+
 "use client"
 
 import { useState, useEffect } from "react"

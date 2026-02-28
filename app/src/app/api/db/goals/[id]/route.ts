@@ -3,8 +3,8 @@ import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
-// ---
 
+// Atualiza os detalhes de uma meta específicar
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -29,8 +29,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-// ---
 
+// Deleta uma meta específica
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

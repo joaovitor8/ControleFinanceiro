@@ -1,3 +1,5 @@
+// Arquivo que define o componente de cabeçalho para dispositivos móveis.
+
 "use client"
 
 import {SignedIn, UserButton } from "@clerk/nextjs";

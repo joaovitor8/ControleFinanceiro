@@ -1,3 +1,4 @@
+// Banco de Dados do Prisma
 
 generator client {
   provider = "prisma-client-js"

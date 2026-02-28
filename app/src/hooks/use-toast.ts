@@ -1,3 +1,5 @@
+// Arquivo que define o hook useToast, que é uma função personalizada para exibir notificações.
+
 import { toast as sonnerToast } from "sonner"
 
 type ToastProps = {

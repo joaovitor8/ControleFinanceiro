@@ -1,3 +1,5 @@
+// Arquivo criado para detectar se o usuário está em um dispositivo móvel ou não.
+
 import * as React from 'react'
 
 const MOBILE_BREAKPOINT = 768

@@ -1,3 +1,5 @@
+// Arquivo que define o layout principal do aplicativo, incluindo a barra lateral, o cabeçalho móvel e a navegação móvel.
+
 "use client"
 
 import { AppSidebar } from "@/src/components/app-sidebar"

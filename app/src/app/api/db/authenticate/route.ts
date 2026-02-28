@@ -1,3 +1,5 @@
+// Arquivo responsável por autenticar o usuário usando o Clerk e sincronizar os dados com o banco de dados Prisma.
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";

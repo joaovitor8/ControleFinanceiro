@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
+
+// Pegar todas as despesas do usuário logado
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -13,6 +15,8 @@ export async function GET() {
   return NextResponse.json(expenses);
 }
 
+
+// Criar nova despesa
 export async function POST(request: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

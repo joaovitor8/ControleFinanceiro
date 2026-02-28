@@ -1,3 +1,5 @@
+// Arquivo responsável por sincronizar o estado de autenticação do Clerk com o backend.
+
 "use client"
 
 import { useEffect, useRef } from "react";

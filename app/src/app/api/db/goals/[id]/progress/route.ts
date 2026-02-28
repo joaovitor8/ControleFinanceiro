@@ -4,7 +4,7 @@ import { prisma } from "@/src/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
 
-
+// Atualiza o valor de uma meta específica
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
+
+// Atualiza uma despesa específica
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -23,6 +25,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
+
+// Deleta uma despesa específica
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

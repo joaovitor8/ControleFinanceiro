@@ -1,3 +1,5 @@
+// Arquivo que define o componente de navegação móvel para a aplicação.
+
 "use client"
 
 import Link from "next/link"
@@ -8,7 +10,7 @@ import { cn } from "@/src/lib/utils"
 
 const navItems = [
   { href: "/main/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/main/transactions", label: "Transacoes", icon: Receipt },
+  { href: "/main/monthlyFees", label: "Mensalidades", icon: Receipt },
   { href: "/main/goals", label: "Metas", icon: Target },
   { href: "/main/settings", label: "Config", icon: Settings },
 ]

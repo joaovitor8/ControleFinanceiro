@@ -1,3 +1,5 @@
+// Arquivo que define o componente de navegação lateral do aplicativo.
+
 "use client"
 
 import Link from "next/link"
@@ -10,7 +12,7 @@ import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
 
 const navItems = [
   { href: "/main/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/main/transactions", label: "Transacoes", icon: Receipt },
+  { href: "/main/monthlyFees", label: "Mensalidades", icon: Receipt },
   { href: "/main/goals", label: "Metas", icon: Target },
   { href: "/main/settings", label: "Configuracoes", icon: Settings },
 ]

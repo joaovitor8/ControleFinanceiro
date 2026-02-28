@@ -1,3 +1,5 @@
+// Arquivo que contém a interface de visualização das metas.
+
 "use client"
 
 import { useState, useEffect } from "react"

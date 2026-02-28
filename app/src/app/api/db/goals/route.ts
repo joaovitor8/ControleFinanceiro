@@ -3,8 +3,8 @@ import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
-// ---
 
+// Rota para lidar com operações relacionadas às metas
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -17,8 +17,8 @@ export async function GET() {
   return NextResponse.json(goals);
 }
 
-// --- 
 
+// Rota para lidar com operações relacionadas a uma meta específica
 export async function POST(request: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
