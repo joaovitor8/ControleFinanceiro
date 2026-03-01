@@ -1,21 +1,18 @@
-// Arquivo responsável pelo formulário de criação de novas metas.
-
 "use client"
 
 import { useState } from "react"
 import axios from "axios"
-import { Loader2, Plane, Car, Shield, Home, Target } from "lucide-react"
-import { toast } from "sonner"
 import { useUser, useAuth } from "@clerk/nextjs"
+import { toast } from "sonner"
 
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Label } from "@/src/components/ui/label"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/src/components/ui/sheet"
 import { RadioGroup, RadioGroupItem } from "@/src/components/ui/radio-group"
+import { Loader2, Plane, Car, Shield, Home, Target } from "lucide-react"
 
 
-// Ícones
 const icons = [
   { value: "target", label: "Objetivo", icon: Target },
   { value: "plane", label: "Viagem", icon: Plane },
@@ -24,7 +21,6 @@ const icons = [
   { value: "shield", label: "Reserva", icon: Shield },
 ]
 
-// Cores
 const colors = [
   { value: "emerald", bg: "bg-emerald-500", ring: "ring-emerald-500" },
   { value: "blue", bg: "bg-sky-500", ring: "ring-sky-500" },
@@ -40,7 +36,8 @@ type Props = {
 }
 
 
-export const NewGoalSheet = ({ open, onOpenChange, onSuccess }: Props) => {
+// Metas do usuário - Componente Nova Meta
+export const NewGoal = ({ open, onOpenChange, onSuccess }: Props) => {
   const { user } = useUser()
   const { getToken } = useAuth()
   const [loading, setLoading] = useState(false)
@@ -51,14 +48,12 @@ export const NewGoalSheet = ({ open, onOpenChange, onSuccess }: Props) => {
   const [selectedIcon, setSelectedIcon] = useState("target")
   const [selectedColor, setSelectedColor] = useState("emerald")
 
-
   const resetForm = () => {
     setName("")
     setTarget("")
     setSelectedIcon("target")
     setSelectedColor("emerald")
   }
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -70,7 +65,7 @@ export const NewGoalSheet = ({ open, onOpenChange, onSuccess }: Props) => {
 
       await axios.post('/api/db/goals', {
         name,
-        target: parseFloat(target), // Converte string para number
+        target: parseFloat(target),
         icon: selectedIcon,
         color: selectedColor
       }, {
@@ -78,9 +73,9 @@ export const NewGoalSheet = ({ open, onOpenChange, onSuccess }: Props) => {
       });
 
       toast.success("Meta criada com sucesso!")
-      onSuccess() // Atualiza a lista na tela pai
+      onSuccess()
       resetForm()
-      onOpenChange(false) // Fecha o Sheet
+      onOpenChange(false)
       
     } catch (error) {
       console.error(error)
@@ -89,6 +84,7 @@ export const NewGoalSheet = ({ open, onOpenChange, onSuccess }: Props) => {
       setLoading(false)
     }
   }
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

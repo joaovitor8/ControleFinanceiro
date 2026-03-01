@@ -1,10 +1,11 @@
-import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
-
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
+
 import { Toaster } from '@/src/components/ui/sonner'
-import { ClerkProvider } from '@clerk/nextjs'
 import { AuthSync } from '@/src/components/authenticate'
+import { ClerkProvider } from '@clerk/nextjs'
+
 
 const inter = Inter({
   subsets: ['latin'],
@@ -18,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'FinSmart - Controle Financeiro Inteligente',
-  description: 'Gerencie suas finanças pessoais com inteligencia. Dashboard premium para controle total do seu dinheiro.',
+  description: 'Gerencie suas finanças pessoais com inteligencia',
 }
 
 export const viewport: Viewport = {
@@ -27,11 +28,8 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <ClerkProvider>
       <html lang="pt-BR" className={`${inter.variable} ${jetbrainsMono.variable}`}>

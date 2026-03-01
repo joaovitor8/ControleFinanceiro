@@ -1,6 +1,7 @@
 import { Skeleton } from "@/src/components/ui/skeleton"
 import { AppShell } from "@/src/components/app-shell"
 
+
 export default function Loading() {
   return (
     <AppShell>

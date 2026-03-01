@@ -1,18 +1,16 @@
-// Arquivo responsável pela edição de metas, permitindo que os usuários atualizem
-
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAuth } from "@clerk/nextjs"
 import axios from "axios"
+import { useAuth } from "@clerk/nextjs"
 import { toast } from "sonner"
 
-import { Loader2, Plane, Car, Shield, Home, Target } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Label } from "@/src/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/src/components/ui/radio-group"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/src/components/ui/sheet"
+import { Loader2, Plane, Car, Shield, Home, Target } from "lucide-react"
 
 
 const icons = [
@@ -22,7 +20,6 @@ const icons = [
   { value: "home", label: "Casa", icon: Home },
   { value: "shield", label: "Reserva", icon: Shield },
 ]
-
 
 const colors = [
   { value: "emerald", bg: "bg-emerald-500", ring: "ring-emerald-500" },
@@ -42,7 +39,8 @@ type Props = {
 }
 
 
-export const EditGoalSheet = ({ open, onOpenChange, onSuccess, goal }: Props) => {
+// Metas do usuário - Componente Editar Meta
+export const EditGoal = ({ open, onOpenChange, onSuccess, goal }: Props) => {
   const { getToken } = useAuth()
   const [loading, setLoading] = useState(false)
   
@@ -60,7 +58,6 @@ export const EditGoalSheet = ({ open, onOpenChange, onSuccess, goal }: Props) =>
       setSelectedColor(goal.color)
     }
   }, [goal])
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -122,7 +119,7 @@ export const EditGoalSheet = ({ open, onOpenChange, onSuccess, goal }: Props) =>
             </RadioGroup>
           </div>
 
-          {/* 4. COR */}
+          {/* COR */}
           <div className="flex flex-col gap-3">
             <Label>Cor</Label>
             <RadioGroup value={selectedColor} onValueChange={setSelectedColor} className="flex gap-4">

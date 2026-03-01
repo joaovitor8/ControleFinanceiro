@@ -1,4 +1,4 @@
-// Arquivo que define o hook useToast, que é uma função personalizada para exibir notificações.
+// Arquivo que define funções personalizada para exibir notificações.
 
 import { toast as sonnerToast } from "sonner"
 
@@ -8,6 +8,7 @@ type ToastProps = {
   action?: React.ReactNode
   variant?: "default" | "destructive"
 }
+
 
 function toast({ title, description, variant, ...props }: ToastProps) {
   if (variant === "destructive") {
@@ -24,6 +25,7 @@ function toast({ title, description, variant, ...props }: ToastProps) {
     ...props,
   })
 }
+
 
 function useToast() {
   return {

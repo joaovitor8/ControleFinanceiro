@@ -1,18 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { Bell, Globe, Lock, User } from "lucide-react"
+import { useUser } from "@clerk/nextjs"
+import { toast } from "sonner"
+
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Label } from "@/src/components/ui/label"
 import { Switch } from "@/src/components/ui/switch"
 import { Separator } from "@/src/components/ui/separator"
-import { toast } from "sonner"
-
-import { useUser } from "@clerk/nextjs"
+import { Bell, Globe, Lock, User } from "lucide-react"
 
 
-export function SettingsView() {
+// Configurações do usuário - Componente
+export const SettingsView = () => {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">

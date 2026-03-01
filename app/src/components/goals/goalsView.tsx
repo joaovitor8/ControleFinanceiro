@@ -1,19 +1,17 @@
-// Arquivo que contém a interface de visualização das metas.
-
 "use client"
 
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { useAuth } from "@clerk/nextjs"
 
-import { toast } from "sonner"
-import { Plus, Plane, Car, Shield, Home, Target, Loader2, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
-import { Progress } from "@/src/components/ui/progress"
 import { Input } from "@/src/components/ui/input"
+import { Progress } from "@/src/components/ui/progress"
+import { Plus, Plane, Car, Shield, Home, Target, Loader2, Pencil, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
-import { NewGoalSheet } from "@/src/components/goals/addGoalDialog"
-import { EditGoalSheet } from "@/src/components/goals/editGoalDialog"
+import { NewGoal } from "@/src/components/goals/addGoal"
+import { EditGoal } from "@/src/components/goals/editGoal"
 
 
 interface Goal {
@@ -25,7 +23,6 @@ interface Goal {
   color: string
 }
 
-
 const iconMap: Record<string, React.ElementType> = {
   plane: Plane,
   car: Car,
@@ -33,7 +30,6 @@ const iconMap: Record<string, React.ElementType> = {
   home: Home,
   target: Target,
 }
-
 
 const colorMap: Record<string, { bg: string; text: string; progress: string; border: string }> = {
   emerald: { bg: "bg-emerald-500/10", text: "text-emerald-400", progress: "[&>div]:bg-emerald-500", border: "hover:border-emerald-500/30" },
@@ -43,17 +39,18 @@ const colorMap: Record<string, { bg: string; text: string; progress: string; bor
 }
 
 
+// Metas do usuário - Componente
 export const GoalsView = () => {
   const { getToken } = useAuth()
-  const [goalsList, setGoalsList] = useState<Goal[]>([]) // Começa vazio
-  const [addAmounts, setAddAmounts] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
-  const [isSheetOpen, setIsSheetOpen] = useState(false) // Controle do Modal
+
+  const [goalsList, setGoalsList] = useState<Goal[]>([])
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null)
+  const [addAmounts, setAddAmounts] = useState<Record<string, string>>({})
 
-
-  // BUSCAR METAS DO BACKEND
+  // Função para buscar metas do backend
   async function fetchGoals() {
     try {
       const token = await getToken();
@@ -71,21 +68,12 @@ export const GoalsView = () => {
     }
   }
 
-
   // Carrega ao abrir a página
   useEffect(() => {
     fetchGoals()
   }, [])
 
-
-  // Função para abrir o modal de Edição
-  const openEdit = (goal: Goal) => {
-    setGoalToEdit(goal)
-    setIsEditOpen(true)
-  }
-
-
-  // Função para Deletar
+  // Função para Deletar metas
   const handleDeleteGoal = async (goalId: string) => {
     const confirmar = confirm("Tem certeza que deseja excluir esta meta?")
     if (!confirmar) return
@@ -96,13 +84,12 @@ export const GoalsView = () => {
         headers: { Authorization: `Bearer ${token}` }
       })
       toast.success("Meta excluída com sucesso!")
-      fetchGoals() // Recarrega a lista
+      fetchGoals()
     } catch (error) {
       console.error("Erro ao excluir meta:", error)
       toast.error("Erro ao excluir meta.")
     }
   }
-
 
   // Função para adicionar valor ao progresso da meta
   const handleAddValue = async (goalId: string) => {
@@ -148,8 +135,13 @@ export const GoalsView = () => {
     }
   }
 
+  // Função para abrir o modal de Edição
+  const openEdit = (goal: Goal) => {
+    setGoalToEdit(goal)
+    setIsEditOpen(true)
+  }
 
-  // Loading State
+  // Loading
   if (loading) {
     return <div className="flex justify-center p-10"><Loader2 className="animate-spin text-emerald-500" /></div>
   }
@@ -169,8 +161,8 @@ export const GoalsView = () => {
         </Button>
       </div>
 
-      <NewGoalSheet open={isSheetOpen} onOpenChange={setIsSheetOpen} onSuccess={fetchGoals} />
-      <EditGoalSheet open={isEditOpen} onOpenChange={setIsEditOpen} onSuccess={fetchGoals} goal={goalToEdit} />
+      <NewGoal open={isSheetOpen} onOpenChange={setIsSheetOpen} onSuccess={fetchGoals} />
+      <EditGoal open={isEditOpen} onOpenChange={setIsEditOpen} onSuccess={fetchGoals} goal={goalToEdit} />
 
       {goalsList.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 px-6">
@@ -181,10 +173,7 @@ export const GoalsView = () => {
           <p className="text-sm text-muted-foreground text-center max-w-xs mb-4">
             Crie sua primeira meta financeira e comece a acompanhar seu progresso.
           </p>
-          <Button 
-            onClick={() => setIsSheetOpen(true)}
-            className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold"
-          >
+          <Button  onClick={() => setIsSheetOpen(true)} className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold" >
             <Plus className="h-4 w-4 mr-2" />
             Criar Meta
           </Button>
@@ -200,10 +189,7 @@ export const GoalsView = () => {
             const remaining = Math.max(goal.target - goal.current, 0)
 
             return (
-              <div
-                key={goal.id}
-                className={`group rounded-xl border border-border bg-card p-6 transition-all duration-300 ${colors.border} hover:shadow-lg`}
-              >
+              <div key={goal.id} className={`group rounded-xl border border-border bg-card p-6 transition-all duration-300 ${colors.border} hover:shadow-lg`} >
                 <div className="flex items-start justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${colors.bg}`}>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/src/components/ui/button";
 import { Bot, Wallet, TrendingUp } from "lucide-react";
@@ -83,10 +84,6 @@ export default function Home() {
                 </Button>
               </Link>
             </SignedIn>
-            
-            <Button variant="outline" size="lg" className="border-zinc-700 hover:bg-zinc-800 text-zinc-300 h-12 px-8">
-              Como funciona?
-            </Button>
           </div>
 
           {/* Imagem/Mockup Abstrato (Efeito Visual) */}
@@ -146,8 +143,8 @@ export default function Home() {
             © 2026 FinSmart AI. Desenvolvido para Portfólio.
           </p>
           <div className="flex gap-4">
-             <Link href="#" className="text-sm text-zinc-500 hover:text-emerald-500">GitHub</Link>
-             <Link href="#" className="text-sm text-zinc-500 hover:text-emerald-500">LinkedIn</Link>
+             <a href="https://github.com/joaovitor8" target="_blank" className="text-sm text-zinc-500 hover:text-emerald-500">GitHub</a>
+             <a href="https://www.linkedin.com/in/joaovitorezequiel/" target="_blank" className="text-sm text-zinc-500 hover:text-emerald-500">LinkedIn</a>
           </div>
         </div>
       </footer>
