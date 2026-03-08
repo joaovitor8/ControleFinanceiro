@@ -1,4 +1,4 @@
-// Banco de Dados do Prisma
+// Banco de Dados - Prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -22,7 +22,7 @@ model User {
 
   // Lista de conexões
   userRoles User_Roles[]
-  AccountsPayable AccountsPayable[]
+  MonthlyFees MonthlyFees[]
   // AccountsReceivable AccountsReceivable[]
   Goal Goal[]
 }
@@ -56,18 +56,16 @@ model User_Roles {
 // ---
 
 
-// Contas a Pagar
-model AccountsPayable {
+// Mensalidades
+model MonthlyFees {
   id String   @id @default(uuid()) // Gera um ID único automático
   name String
   amount Decimal // Valor
 
   category String   // "Assinatura", "Lazer", etc.
-
   frequency String  // "Mensal", "Anual"
-  nextDate DateTime // Quando vence
   
-  date DateTime @default(now()) // Data que aconteceu
+  date DateTime
 
   // Dono (Relacionamento 1-N)
   userId String
@@ -88,17 +86,3 @@ model Goal {
 
   user      User     @relation(fields: [userId], references: [id])
 }
-
-
-
-// Contas a Receber
-// model AccountsReceivable{
-//   id String   @id @default(uuid()) // Gera um ID único automático
-//   name String
-//   amount Decimal
-
-
-//   // Dono (Relacionamento 1-N)
-//   userId String
-//   user User     @relation(fields: [userId], references: [id])
-// }

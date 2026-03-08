@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Label } from "@/src/components/ui/label"
-import { Checkbox } from "@/src/components/ui/checkbox"
+// import { Checkbox } from "@/src/components/ui/checkbox"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/src/components/ui/sheet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
 import { Loader2 } from "lucide-react"
@@ -28,16 +28,14 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")
   const [category, setCategory] = useState("")
-  const [date, setDate] = useState("")
-  const [recurring, setRecurring] = useState(true)
+  const [frequency, setFrequency] = useState("Mensal")
 
   // Função para resetar o formulário após salvar ou fechar o modal
   const resetForm = () => {
     setDescription("")
     setAmount("")
     setCategory("")
-    setDate("")
-    setRecurring(true)
+    setFrequency("Mensal")
   }
 
   // Função para lidar com o envio do formulário
@@ -51,7 +49,7 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
         description,
         amount: parseFloat(amount),
         category,
-        date: date || new Date().toISOString().split("T")[0],
+        frequency: frequency,
       };
 
       const response = await axios.post('/api/db/monthlyFees', payload);
@@ -63,9 +61,7 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
         description: newFee.name,
         amount: Number(newFee.amount),
         category: newFee.category,
-        date: newFee.nextDate.split('T')[0],
-        type: "expense",
-        status: "pending",
+        frequency: newFee.frequency,
       });
 
       toast.success("Mensalidade salva com sucesso!");
@@ -120,19 +116,18 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="date" className="text-sm font-medium text-foreground">Dia do Vencimento</Label>
-              <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-secondary/50 border-border" />
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3 rounded-lg border border-border p-3 bg-secondary/30">
-            <Checkbox id="recurring" checked={recurring} onCheckedChange={(v) => setRecurring(v === true)} />
-            <div className="flex flex-col">
-              <Label htmlFor="recurring" className="text-sm font-medium text-foreground cursor-pointer">
-                Renovação Automática
-              </Label>
-              <span className="text-xs text-muted-foreground">Esta cobrança se repete todos os meses</span>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="frequency" className="text-sm font-medium text-foreground">Frequencia</Label>
+              <Select value={frequency} onValueChange={setFrequency} required>
+                <SelectTrigger className="bg-secondary/50 border-border">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Mensal">Mensal</SelectItem>
+                  <SelectItem value="Anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

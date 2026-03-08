@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { auth } from "@clerk/nextjs/server"; // Troque isso quando fizer seu auth customizado
 
+
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
-    const fees = await prisma.accountsPayable.findMany({
+    const fees = await prisma.monthlyFees.findMany({
       where: { userId },
-      orderBy: { nextDate: 'asc' } // Ordena pelas contas mais próximas de vencer
     });
 
     // Como 'amount' é Decimal no Prisma, precisamos converter para número comum no front
@@ -18,8 +18,7 @@ export async function GET() {
       description: fee.name, // Mapeando 'name' do banco para 'description' do front
       amount: Number(fee.amount),
       category: fee.category,
-      date: fee.nextDate.toISOString().split('T')[0],
-      status: "pending", // Status fixo no front por enquanto
+      frequency: fee.frequency,
     }));
 
     return NextResponse.json(formattedFees);
@@ -29,6 +28,7 @@ export async function GET() {
   }
 }
 
+
 export async function POST(request: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -36,14 +36,14 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const newFee = await prisma.accountsPayable.create({
+    const newFee = await prisma.monthlyFees.create({
       data: {
         userId: userId,
-        name: body.description, // Front manda description, banco salva name
+        name: body.description,
         amount: body.amount,
         category: body.category,
-        frequency: "Mensal", // Você definiu frequency no schema como String
-        nextDate: new Date(body.date),
+        frequency: body.frequency,
+        date: new Date()
       }
     });
 

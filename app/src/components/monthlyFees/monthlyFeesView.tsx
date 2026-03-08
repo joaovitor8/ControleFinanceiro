@@ -167,7 +167,7 @@ export const MonthlyFeesView = () => {
                         {fee.category}
                       </span>
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{formatDate(fee.date)}</TableCell>
+                    {/* <TableCell className="text-muted-foreground text-sm">{formatDate(fee.date)}</TableCell> */}
                     <TableCell>
                       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-400">
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Pendente
