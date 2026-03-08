@@ -28,6 +28,7 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")
   const [category, setCategory] = useState("")
+  const [frequency, setFrequency] = useState("Mensal")
   const [date, setDate] = useState("")
 
 
@@ -36,6 +37,7 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
       setDescription(fee.description)
       setAmount(fee.amount.toString())
       setCategory(fee.category)
+      setFrequency(fee.frequency)
       setDate(fee.date.split("T")[0])
     }
   }, [fee, open])
@@ -51,7 +53,8 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
         description,
         amount: parseFloat(amount),
         category,
-        date: date || new Date().toISOString().split("T")[0],
+        frequency,
+        date: date,
       }
 
       await axios.put(`/api/db/monthlyFees/${fee.id}`, payload)
@@ -62,6 +65,7 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
         description,
         amount: parseFloat(amount),
         category,
+        frequency,
         date,
       })
 
@@ -97,7 +101,7 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
             <Input id="edit-amount" type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required className="bg-secondary/50 border-border font-mono" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="edit-category" className="text-sm font-medium text-foreground">Categoria</Label>
               <Select value={category} onValueChange={setCategory} required>
@@ -118,7 +122,20 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="edit-date" className="text-sm font-medium text-foreground">Vencimento</Label>
+              <Label htmlFor="edit-frequency" className="text-sm font-medium text-foreground">Frequência</Label>
+              <Select value={frequency} onValueChange={setFrequency} required>
+                <SelectTrigger className="bg-secondary/50 border-border">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Mensal">Mensal</SelectItem>
+                  <SelectItem value="Anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="edit-date" className="text-sm font-medium text-foreground">Data de Aquisição</Label>
               <Input id="edit-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-secondary/50 border-border" />
             </div>
           </div>

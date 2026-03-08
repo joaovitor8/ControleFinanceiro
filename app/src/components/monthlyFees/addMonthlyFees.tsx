@@ -29,6 +29,7 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
   const [amount, setAmount] = useState("")
   const [category, setCategory] = useState("")
   const [frequency, setFrequency] = useState("Mensal")
+  const [date, setDate] = useState("")
 
   // Função para resetar o formulário após salvar ou fechar o modal
   const resetForm = () => {
@@ -36,6 +37,7 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
     setAmount("")
     setCategory("")
     setFrequency("Mensal")
+    setDate("")
   }
 
   // Função para lidar com o envio do formulário
@@ -50,6 +52,7 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
         amount: parseFloat(amount),
         category,
         frequency: frequency,
+        date: date,
       };
 
       const response = await axios.post('/api/db/monthlyFees', payload);
@@ -62,6 +65,7 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
         amount: Number(newFee.amount),
         category: newFee.category,
         frequency: newFee.frequency,
+        date: newFee.date.split('T')[0],
       });
 
       toast.success("Mensalidade salva com sucesso!");
@@ -97,7 +101,7 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
             <Input id="amount" type="number" step="0.01" min="0.01" placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} required className="bg-secondary/50 border-border font-mono" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="category" className="text-sm font-medium text-foreground">Categoria</Label>
               <Select value={category} onValueChange={setCategory} required>
@@ -128,6 +132,11 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
                   <SelectItem value="Anual">Anual</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="date" className="text-sm font-medium text-foreground">Data</Label>
+              <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-secondary/50 border-border" />
             </div>
           </div>
 

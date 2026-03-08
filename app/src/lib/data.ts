@@ -7,6 +7,7 @@ export type Transaction = {
   amount: number
   category: string
   frequency: string
+  date: string
 }
 
 export type Goal = {

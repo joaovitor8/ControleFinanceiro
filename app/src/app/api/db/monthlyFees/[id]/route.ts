@@ -11,7 +11,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
 
     // Usamos deleteMany para garantir que a conta pertence ao usuário logado
-    const result = await prisma.accountsPayable.deleteMany({
+    const result = await prisma.monthlyFees.deleteMany({
       where: { id: id, userId: userId }
     });
 
@@ -34,13 +34,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const body = await request.json();
     const { id } = await params;
 
-    const result = await prisma.accountsPayable.updateMany({
+    const result = await prisma.monthlyFees.updateMany({
       where: { id: id, userId: userId },
       data: {
         name: body.description,
         amount: body.amount,
         category: body.category,
-        nextDate: new Date(body.date),
+        frequency: body.frequency,
+        date: new Date(body.date),
       }
     });
 

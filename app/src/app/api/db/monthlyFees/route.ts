@@ -19,6 +19,7 @@ export async function GET() {
       amount: Number(fee.amount),
       category: fee.category,
       frequency: fee.frequency,
+      date: fee.date.toISOString().split('T')[0],
     }));
 
     return NextResponse.json(formattedFees);
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
         amount: body.amount,
         category: body.category,
         frequency: body.frequency,
-        date: new Date()
+        date: new Date(body.date),
       }
     });
 

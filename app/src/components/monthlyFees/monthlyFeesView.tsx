@@ -14,7 +14,7 @@ import { MoreHorizontal, Pencil, Plus, Receipt, Search, Trash2, Loader2 } from "
 import { AddMonthlyFees } from "@/src/components/monthlyFees/addMonthlyFees";
 import { EditMonthlyFee } from "@/src/components/monthlyFees/editMonthlyFees";
 
-import { categoryColors, formatCurrency, formatDate, type Transaction } from "@/src/lib/data"; // Removemos o array de mock 'transactions'
+import { categoryColors, formatCurrency, type Transaction } from "@/src/lib/data"; // Removemos o array de mock 'transactions'
 
 const ITEMS_PER_PAGE = 8;
 
@@ -89,6 +89,16 @@ export const MonthlyFeesView = () => {
     page * ITEMS_PER_PAGE,
   );
 
+  // Extrai os meses únicos para o filtro
+  const uniqueMonths = useMemo(() => {
+    // Pega apenas o ano-mês de cada data
+    const allMonths = feesList.map(fee => fee.date.slice(0, 7)); 
+    // O Set remove automaticamente todas as duplicatas
+    const uniqueSet = new Set(allMonths);
+    // Converte o Set de volta para um array, e opcionalmente, você pode ordenar (do mais novo pro mais antigo)
+    return Array.from(uniqueSet).sort().reverse(); 
+  }, [feesList]);
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -118,9 +128,16 @@ export const MonthlyFeesView = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os Meses</SelectItem>
-              <SelectItem value="2026-02">Fev 2026</SelectItem>
-              <SelectItem value="2026-01">Jan 2026</SelectItem>
-              <SelectItem value="2025-12">Dez 2025</SelectItem>
+              {uniqueMonths.map((monthStr) => {
+                const [year, month] = monthStr.split('-');
+                const monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleString("pt-BR", { month: "short", year: "numeric" });
+                
+                return (
+                  <SelectItem key={monthStr} value={monthStr}>
+                    <span className="capitalize">{monthName}</span>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
@@ -151,8 +168,8 @@ export const MonthlyFeesView = () => {
                 <TableRow className="border-border hover:bg-transparent">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Serviço</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Categoria</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Vencimento</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Frequencia</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Data de Aquissição</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right">Valor</TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
@@ -167,15 +184,9 @@ export const MonthlyFeesView = () => {
                         {fee.category}
                       </span>
                     </TableCell>
-                    {/* <TableCell className="text-muted-foreground text-sm">{formatDate(fee.date)}</TableCell> */}
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Pendente
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold font-mono text-foreground">
-                      - {formatCurrency(fee.amount)}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{fee.frequency}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{fee.date}</TableCell>
+                    <TableCell className="text-right font-semibold font-mono text-foreground">{formatCurrency(fee.amount)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -200,6 +211,37 @@ export const MonthlyFeesView = () => {
             </Table>
           </div>
 
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-border px-4 py-3">
+          <p className="text-xs text-muted-foreground">
+            {filtered.length} mensalidade(s) encontrada(s)
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="h-8 border-border bg-card text-foreground"
+            >
+              Anterior
+            </Button>
+            <span className="text-xs text-muted-foreground px-2">
+              {page} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="h-8 border-border bg-card text-foreground"
+            >
+              Próximo
+            </Button>
+          </div>
         </div>
       )}
 
