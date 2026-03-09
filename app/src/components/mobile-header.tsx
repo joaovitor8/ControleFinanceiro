@@ -2,7 +2,7 @@
 
 "use client"
 
-import {SignedIn, UserButton } from "@clerk/nextjs";
+import { Show, UserButton } from "@clerk/nextjs";
 import { TrendingUp } from "lucide-react"
 
 
@@ -15,9 +15,9 @@ export function MobileHeader() {
         </div>
         <h1 className="text-base font-semibold text-foreground">FinSmart</h1>
       </div>
-        <SignedIn>
+        <Show when={"signed-in"}>
           <UserButton />
-        </SignedIn>
+        </Show>
     </header>
   )
 }

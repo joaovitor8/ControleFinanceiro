@@ -4,6 +4,7 @@ import { BalanceChart } from "@/src/components/dashboard/balance-chart"
 import { CategoryChart } from "@/src/components/dashboard/category-chart"
 import { RecentTransactions } from "@/src/components/dashboard/recent-transactions"
 
+
 export default function DashboardPage() {
   return (
     <AppShell>

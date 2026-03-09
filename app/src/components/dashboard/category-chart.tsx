@@ -1,7 +1,12 @@
 "use client"
 
+import { useState, useEffect } from "react";
+import axios from "axios";
+
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
-import { categoryData, formatCurrency } from "@/src/lib/data"
+
+import { formatCurrency } from "@/src/lib/data"
+
 
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string; value: number; fill: string } }> }) {
   if (!active || !payload?.length) return null
@@ -18,7 +23,21 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
 }
 
 export function CategoryChart() {
-  const total = categoryData.reduce((sum, item) => sum + item.value, 0)
+  const [fees, setFees] = useState([])
+  const total = fees.reduce((sum, item) => sum + item.value, 0)
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("/api/monthlyFees")
+      setFees(response.data)
+    } catch (error) {
+      console.error("Error fetching monthly fees:", error)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 lg:p-6">
@@ -30,18 +49,9 @@ export function CategoryChart() {
         <div className="relative h-50 w-50">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                innerRadius={65}
-                outerRadius={90}
-                paddingAngle={3}
-                dataKey="value"
-                strokeWidth={0}
-              >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
+              <Pie data={fees} cx="50%" cy="50%" innerRadius={65} outerRadius={90} paddingAngle={3} dataKey="value" strokeWidth={0} >
+                {fees.map((entry, index) => (
+                  <Cell key={`cell-${index}`} />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
@@ -53,7 +63,7 @@ export function CategoryChart() {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-x-6 gap-y-2 mt-4 w-full max-w-65">
-          {categoryData.map((item) => (
+          {fees.map((item) => (
             <div key={item.name} className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.fill }} />
               <span className="text-xs text-muted-foreground truncate">{item.name}</span>

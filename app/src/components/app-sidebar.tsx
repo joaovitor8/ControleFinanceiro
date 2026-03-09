@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { LayoutDashboard, Receipt, Target, Settings, TrendingUp } from "lucide-react"
 import { cn } from "@/src/lib/utils"
 
-import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
+import { Show, UserButton, useUser } from "@clerk/nextjs";
 
 
 const navItems = [
@@ -59,9 +59,9 @@ export function AppSidebar() {
 
       <div className="border-t border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
-          <SignedIn>
+          <Show when={"signed-in"}>
             <UserButton />
-          </SignedIn>
+          </Show>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">{useUser().user?.firstName}</p>
             <p className="text-xs text-muted-foreground truncate">{useUser().user?.emailAddresses[0]?.emailAddress}</p>

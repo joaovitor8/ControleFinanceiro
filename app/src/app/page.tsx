@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
 import { Button } from "@/src/components/ui/button";
 import { Bot, Wallet, TrendingUp } from "lucide-react";
 
@@ -24,7 +24,7 @@ export default function Home() {
   
           {/* Navegação / Auth */}
           <nav className="flex items-center gap-4">
-            <SignedOut>
+            <Show when={"signed-out"}>
               <SignInButton mode="modal">
                 <Button variant="ghost" className="text-zinc-300 hover:text-white hover:bg-zinc-800">
                   Entrar
@@ -35,11 +35,11 @@ export default function Home() {
                   Começar Grátis
                 </Button>
               </SignUpButton>
-            </SignedOut>
+            </Show>
   
-            <SignedIn>
+            <Show when={"signed-in"}>
               <UserButton />
-            </SignedIn>
+            </Show>
           </nav>
         </div>
       </header>
@@ -70,20 +70,21 @@ export default function Home() {
 
           {/* Botões de Ação */}
           <div className="flex flex-col gap-4 sm:flex-row">
-            <SignedOut>
+            <Show when={"signed-out"}>
               <SignUpButton mode="modal">
                 <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-lg h-12 px-8 neon-shadow">
                   Criar Conta Grátis
                 </Button>
               </SignUpButton>
-            </SignedOut>
-            <SignedIn>
+            </Show>
+
+            <Show when={"signed-in"}>
               <Link href="/main/dashboard">
                 <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-lg h-12 px-8 neon-shadow">
                   Ir para Dashboard
                 </Button>
               </Link>
-            </SignedIn>
+            </Show>
           </div>
 
           {/* Imagem/Mockup Abstrato (Efeito Visual) */}
