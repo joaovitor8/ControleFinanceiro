@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { useAuth } from "@clerk/nextjs"
 import { toast } from "sonner"
 
 import { Button } from "@/src/components/ui/button"
@@ -28,7 +27,6 @@ const colors = [
   { value: "purple", bg: "bg-purple-500", ring: "ring-purple-500" },
 ]
 
-
 type Goal = { id: string, name: string, target: number, icon: string, color: string }
 
 type Props = {
@@ -39,16 +37,13 @@ type Props = {
 }
 
 
-// Metas do usuário - Componente Editar Meta
 export const EditGoal = ({ open, onOpenChange, onSuccess, goal }: Props) => {
-  const { getToken } = useAuth()
   const [loading, setLoading] = useState(false)
   
   const [name, setName] = useState("")
   const [target, setTarget] = useState("")
   const [selectedIcon, setSelectedIcon] = useState("target")
   const [selectedColor, setSelectedColor] = useState("emerald")
-
 
   useEffect(() => {
     if (goal) {
@@ -65,15 +60,11 @@ export const EditGoal = ({ open, onOpenChange, onSuccess, goal }: Props) => {
     setLoading(true)
 
     try {
-      const token = await getToken()
-
       await axios.put(`/api/db/goals/${goal.id}`, {
         name,
         target: parseFloat(target),
         icon: selectedIcon,
         color: selectedColor
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       toast.success("Meta atualizada!")
@@ -87,7 +78,6 @@ export const EditGoal = ({ open, onOpenChange, onSuccess, goal }: Props) => {
     }
   }
 
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-card border-border w-full sm:max-w-lg overflow-y-auto">
@@ -96,7 +86,6 @@ export const EditGoal = ({ open, onOpenChange, onSuccess, goal }: Props) => {
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 px-1">
-
           <div className="flex flex-col gap-2">
             <Label htmlFor="edit-name">Nome do Objetivo</Label>
             <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-secondary/50 border-border" />
@@ -119,7 +108,6 @@ export const EditGoal = ({ open, onOpenChange, onSuccess, goal }: Props) => {
             </RadioGroup>
           </div>
 
-          {/* COR */}
           <div className="flex flex-col gap-3">
             <Label>Cor</Label>
             <RadioGroup value={selectedColor} onValueChange={setSelectedColor} className="flex gap-4">

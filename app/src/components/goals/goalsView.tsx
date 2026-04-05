@@ -2,17 +2,13 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { useAuth } from "@clerk/nextjs"
-
-import { Button } from "@/src/components/ui/button"
-import { Input } from "@/src/components/ui/input"
-import { Progress } from "@/src/components/ui/progress"
 import { Plus, Plane, Car, Shield, Home, Target, Loader2, Pencil, Trash2 } from "lucide-react"
+import { Button } from "@/src/components/ui/button"
+import { Progress } from "@/src/components/ui/progress"
+import { Input } from "@/src/components/ui/input"
 import { toast } from "sonner"
-
 import { NewGoal } from "@/src/components/goals/addGoal"
 import { EditGoal } from "@/src/components/goals/editGoal"
-
 
 interface Goal {
   id: string
@@ -38,27 +34,18 @@ const colorMap: Record<string, { bg: string; text: string; progress: string; bor
   purple: { bg: "bg-purple-500/10", text: "text-purple-400", progress: "[&>div]:bg-purple-500", border: "hover:border-purple-500/30" },
 }
 
-
-// Metas do usuário - Componente
-export const GoalsView = () => {
-  const { getToken } = useAuth()
+export function GoalsView() {
+  const [goalsList, setGoalsList] = useState<Goal[]>([]) 
+  const [addAmounts, setAddAmounts] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
-
-  const [goalsList, setGoalsList] = useState<Goal[]>([])
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [isSheetOpen, setIsSheetOpen] = useState(false) 
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null)
-  const [addAmounts, setAddAmounts] = useState<Record<string, string>>({})
 
-  // Função para buscar metas do backend
   async function fetchGoals() {
     try {
-      const token = await getToken();
-      
-      const response = await axios.get('/api/db/goals', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      
+      // Axios envia o cookie automaticamente agora!
+      const response = await axios.get('/api/db/goals')
       setGoalsList(response.data)
     } catch (error) {
       console.error("Erro ao buscar metas", error)
@@ -68,66 +55,48 @@ export const GoalsView = () => {
     }
   }
 
-  // Carrega ao abrir a página
   useEffect(() => {
     fetchGoals()
   }, [])
 
-  // Função para Deletar metas
+  const openEdit = (goal: Goal) => {
+    setGoalToEdit(goal)
+    setIsEditOpen(true)
+  }
+
   const handleDeleteGoal = async (goalId: string) => {
     const confirmar = confirm("Tem certeza que deseja excluir esta meta?")
     if (!confirmar) return
 
     try {
-      const token = await getToken()
-      await axios.delete(`/api/db/goals/${goalId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      await axios.delete(`/api/db/goals/${goalId}`)
       toast.success("Meta excluída com sucesso!")
-      fetchGoals()
+      fetchGoals() 
     } catch (error) {
-      console.error("Erro ao excluir meta:", error)
       toast.error("Erro ao excluir meta.")
     }
   }
 
-  // Função para adicionar valor ao progresso da meta
   const handleAddValue = async (goalId: string) => {
-
-    // Pega o valor digitado no input
     const amountString = addAmounts[goalId]
     if (!amountString) return
 
     const amountToAdd = parseFloat(amountString)
     if (isNaN(amountToAdd) || amountToAdd <= 0) return
 
-    // Encontra a meta na lista para descobrir o valor 'current' atual
     const goal = goalsList.find(g => g.id === goalId)
     if (!goal) return
 
-    // Soma o valor atual com o novo valor
     const newCurrentValue = goal.current + amountToAdd
 
     try {
-      const token = await getToken()
-      
-      // Envia o novo valor total para o backend
-      await axios.put(`/api/db/goals/${goalId}/progress`, {
-        current: newCurrentValue
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-
+      await axios.put(`/api/db/goals/${goalId}`, { current: newCurrentValue })
       toast.success("Valor adicionado com sucesso!")
-      
-      // Limpa apenas o input desta meta específica
       setAddAmounts(prev => {
         const newState = { ...prev }
         delete newState[goalId]
         return newState
       })
-      
-      // Atualiza a lista na tela
       fetchGoals()
     } catch (error) {
       console.error("Erro ao adicionar valor:", error)
@@ -135,17 +104,9 @@ export const GoalsView = () => {
     }
   }
 
-  // Função para abrir o modal de Edição
-  const openEdit = (goal: Goal) => {
-    setGoalToEdit(goal)
-    setIsEditOpen(true)
-  }
-
-  // Loading
   if (loading) {
     return <div className="flex justify-center p-10"><Loader2 className="animate-spin text-emerald-500" /></div>
   }
-
 
   return (
     <div className="flex flex-col gap-6">
@@ -154,8 +115,11 @@ export const GoalsView = () => {
           <h2 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">Metas Financeiras</h2>
           <p className="text-sm text-muted-foreground mt-1">Acompanhe o progresso dos seus objetivos</p>
         </div>
-
-        <Button  onClick={() => setIsSheetOpen(true)} className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold shadow-lg shadow-emerald-500/20" >
+        
+        <Button 
+          onClick={() => setIsSheetOpen(true)}
+          className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold shadow-lg shadow-emerald-500/20"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nova Meta
         </Button>
@@ -173,7 +137,10 @@ export const GoalsView = () => {
           <p className="text-sm text-muted-foreground text-center max-w-xs mb-4">
             Crie sua primeira meta financeira e comece a acompanhar seu progresso.
           </p>
-          <Button  onClick={() => setIsSheetOpen(true)} className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold" >
+          <Button 
+            onClick={() => setIsSheetOpen(true)}
+            className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Criar Meta
           </Button>
@@ -182,14 +149,16 @@ export const GoalsView = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {goalsList.map((goal) => {
             const Icon = iconMap[goal.icon] || Target
-
             const colors = colorMap[goal.color] || colorMap.emerald 
             
             const percentage = goal.target > 0 ? Math.min(Math.round((goal.current / goal.target) * 100), 100) : 0
             const remaining = Math.max(goal.target - goal.current, 0)
 
             return (
-              <div key={goal.id} className={`group rounded-xl border border-border bg-card p-6 transition-all duration-300 ${colors.border} hover:shadow-lg`} >
+              <div
+                key={goal.id}
+                className={`group rounded-xl border border-border bg-card p-6 transition-all duration-300 ${colors.border} hover:shadow-lg`}
+              >
                 <div className="flex items-start justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${colors.bg}`}>
@@ -205,7 +174,10 @@ export const GoalsView = () => {
                   <span className={`text-sm font-bold font-mono ${colors.text}`}>{percentage}%</span>
                 </div>
 
-                <Progress value={percentage} className={`h-2.5 bg-secondary mb-4 ${colors.progress}`} />
+                <Progress
+                  value={percentage}
+                  className={`h-2.5 bg-secondary mb-4 ${colors.progress}`}
+                />
 
                 <div className="flex items-center justify-between mb-5">
                   <div>

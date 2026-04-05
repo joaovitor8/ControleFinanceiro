@@ -1,13 +1,12 @@
-// Arquivo que define o componente de navegação lateral do aplicativo.
-
 "use client"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Receipt, Target, Settings, TrendingUp } from "lucide-react"
+import { LayoutDashboard, Receipt, Target, Settings, TrendingUp, LogOut } from "lucide-react"
 import { cn } from "@/src/lib/utils"
 
-import { Show, UserButton, useUser } from "@clerk/nextjs";
+import { useAuth } from "@/src/contexts/AuthContext"
+import axios from "axios"
 
 
 const navItems = [
@@ -20,6 +19,15 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  
+  // Puxando o usuário logado do sistema
+  const { user } = useAuth()
+
+  // Função de deslogar
+  const handleLogout = async () => {
+    await axios.post("/api/auth/logout")
+    window.location.href = "/login" // Redireciona e limpa a memória do React
+  }
 
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-sidebar border-r border-sidebar-border">
@@ -57,15 +65,28 @@ export function AppSidebar() {
         </ul>
       </nav>
 
+      {/* Rodapé do Sidebar Customizado */}
       <div className="border-t border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
-          <Show when={"signed-in"}>
-            <UserButton />
-          </Show>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{useUser().user?.firstName}</p>
-            <p className="text-xs text-muted-foreground truncate">{useUser().user?.emailAddresses[0]?.emailAddress}</p>
+          
+          {/* Nosso Avatar Customizado (Inicial do Nome) */}
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500 font-bold">
+            {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
           </div>
+          
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{user?.name || "Usuário"}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+          </div>
+
+          {/* Botão de Sair */}
+          <button 
+            onClick={handleLogout} 
+            className="text-muted-foreground hover:text-rose-500 transition-colors p-1" 
+            title="Sair"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </aside>

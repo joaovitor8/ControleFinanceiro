@@ -1,5 +1,3 @@
-// Banco de Dados - Prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,26 +13,17 @@ datasource db {
 
 // Tabela do Usuario
 model User {
-  id String @id
-  email String @unique
-  name String?
-  date DateTime @default(now()) // Quando o usuario se cadastro ( Entrou pela primeira vez )
+  id           String   @id @default(uuid()) // Gerar o ID automaticamente
+  email        String   @unique
+  name         String?
+  passwordHash String   // Senha criptografada
+  date         DateTime @default(now()) // Quando o usuario se cadastro ( Entrou pela primeira vez )
 
   // Lista de conexões
-  userRoles User_Roles[]
-  MonthlyFees MonthlyFees[]
+  userRoles          User_Roles[]
+  MonthlyFees        MonthlyFees[]
   // AccountsReceivable AccountsReceivable[]
-  Goal Goal[]
-}
-
-
-// Tabela de Funções ( Se o usuario é Admin, Premium ou Gratis )
-model Roles {
-  id  Int @id @default(autoincrement())
-  name String @unique
-
-  // Lista de conexões
-  userRoles User_Roles[]
+  Goal               Goal[]
 }
 
 
@@ -46,7 +35,6 @@ model User_Roles {
   // Relações
   // O campo 'userId' e 'roleId' desta tabela aponta para o campo 'id' da tabela User e Roles"
   user   User @relation(fields: [userId], references: [id])
-  role   Roles @relation(fields: [roleId], references: [id])
 
   // Chave Primária Composta
   @@id([userId, roleId]) // Não pode existir uma linha repetida com o mesmo par userId + roleId

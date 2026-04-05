@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
-import { auth } from "@clerk/nextjs/server"; // Troque isso quando fizer seu auth customizado
+import { cookies } from "next/headers";
+import { verifyToken } from "@/src/lib/auth";
 
+
+async function getUserId() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  if (!token) return null;
+  const payload = await verifyToken(token);
+  return payload?.userId as string | null;
+}
 
 export async function GET() {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
@@ -12,14 +21,13 @@ export async function GET() {
       where: { userId },
     });
 
-    // Como 'amount' é Decimal no Prisma, precisamos converter para número comum no front
     const formattedFees = fees.map(fee => ({
       id: fee.id,
-      description: fee.name, // Mapeando 'name' do banco para 'description' do front
+      name: fee.name, // Ajustado para name, acompanhando o frontend
       amount: Number(fee.amount),
       category: fee.category,
       frequency: fee.frequency,
-      date: fee.date.toISOString().split('T')[0],
+      date: fee.date.toISOString(),
     }));
 
     return NextResponse.json(formattedFees);
@@ -29,9 +37,8 @@ export async function GET() {
   }
 }
 
-
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
@@ -40,7 +47,7 @@ export async function POST(request: Request) {
     const newFee = await prisma.monthlyFees.create({
       data: {
         userId: userId,
-        name: body.description,
+        name: body.name, // Ajustado para name
         amount: body.amount,
         category: body.category,
         frequency: body.frequency,

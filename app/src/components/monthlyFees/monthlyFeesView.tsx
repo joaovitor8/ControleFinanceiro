@@ -14,23 +14,39 @@ import { MoreHorizontal, Pencil, Plus, Receipt, Search, Trash2, Loader2 } from "
 import { AddMonthlyFees } from "@/src/components/monthlyFees/addMonthlyFees";
 import { EditMonthlyFee } from "@/src/components/monthlyFees/editMonthlyFees";
 
-import { categoryColors, formatCurrency, type Transaction } from "@/src/lib/data"; // Removemos o array de mock 'transactions'
+import type { FeeType } from "@/src/components/monthlyFees/addMonthlyFees";
+
 
 const ITEMS_PER_PAGE = 8;
 
+const categoryColors: Record<string, string> = {
+  "Streaming": "bg-purple-500/10 text-purple-400",
+  "Internet": "bg-sky-500/10 text-sky-400",
+  "Casa": "bg-amber-500/10 text-amber-400",
+  "Aluguel": "bg-emerald-500/10 text-emerald-400",
+  "Academia": "bg-rose-500/10 text-rose-400",
+  "Educação": "bg-blue-500/10 text-blue-400",
+  "Seguro": "bg-zinc-500/10 text-zinc-400",
+  "Outros": "bg-secondary text-muted-foreground"
+};
 
-// Mensalidades do usuário - Componente de visualização
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+};
+
+
 export const MonthlyFeesView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [monthFilter, setMonthFilter] = useState<string>("all");
-  const [feesList, setFeesList] = useState<Transaction[]>([]);
-  const [feeToEdit, setFeeToEdit] = useState<Transaction | null>(null);
+  
+  const [feesList, setFeesList] = useState<FeeType[]>([]);
+  const [feeToEdit, setFeeToEdit] = useState<FeeType | null>(null);
+  
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  // Função para buscar os dados do backend
   const fetchFees = async () => {
     try {
       setIsLoading(true);
@@ -44,12 +60,10 @@ export const MonthlyFeesView = () => {
     }
   };
 
-  // Executa a busca assim que o componente monta
   useEffect(() => {
     fetchFees();
   }, []);
 
-  // Deletar de verdade no banco
   const handleDelete = async (id: string) => {
     try {
       await axios.delete(`/api/db/monthlyFees/${id}`);
@@ -61,44 +75,35 @@ export const MonthlyFeesView = () => {
     }
   };
 
-  // Função para filtrar os dados com base na busca e no filtro de mês
   const filtered = useMemo(() => {
     return feesList.filter((fee) => {
       const matchSearch =
-        fee.description.toLowerCase().includes(search.toLowerCase()) ||
+        fee.name.toLowerCase().includes(search.toLowerCase()) ||
         fee.category.toLowerCase().includes(search.toLowerCase());
+      
       const matchMonth =
-        monthFilter === "all" || fee.date.startsWith(monthFilter);
+        monthFilter === "all" || (fee.date && fee.date.startsWith(monthFilter));
+      
       return matchSearch && matchMonth;
     });
   }, [feesList, search, monthFilter]);
 
-  // Quando o modal salvar com sucesso, ele chama isso para recarregar a lista
   const handleFeeCreated = () => {
     fetchFees();
   };
 
-  // Função para atualizar a mensalidade editada na lista sem precisar recarregar tudo do backend
-  const handleUpdateFee = (updatedFee: Transaction) => {
+  const handleUpdateFee = (updatedFee: FeeType) => {
     setFeesList((prev) => prev.map((fee) => (fee.id === updatedFee.id ? updatedFee : fee)));
   };
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
-    (page - 1) * ITEMS_PER_PAGE,
-    page * ITEMS_PER_PAGE,
-  );
+  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  // Extrai os meses únicos para o filtro
   const uniqueMonths = useMemo(() => {
-    // Pega apenas o ano-mês de cada data
-    const allMonths = feesList.map(fee => fee.date.slice(0, 7)); 
-    // O Set remove automaticamente todas as duplicatas
-    const uniqueSet = new Set(allMonths);
-    // Converte o Set de volta para um array, e opcionalmente, você pode ordenar (do mais novo pro mais antigo)
+    const allMonths = feesList.map(fee => fee.date ? fee.date.slice(0, 7) : "");
+    const uniqueSet = new Set(allMonths.filter(Boolean)); 
     return Array.from(uniqueSet).sort().reverse(); 
   }, [feesList]);
-
 
   return (
     <div className="flex flex-col gap-6">
@@ -178,14 +183,16 @@ export const MonthlyFeesView = () => {
               <TableBody>
                 {paginated.map((fee) => (
                   <TableRow key={fee.id} className="border-border hover:bg-secondary/30 transition-colors">
-                    <TableCell className="font-medium text-foreground">{fee.description}</TableCell>
+                    {/* Alterado para fee.name */}
+                    <TableCell className="font-medium text-foreground">{fee.name}</TableCell>
                     <TableCell>
                       <span className={`text-xs font-medium px-2 py-1 rounded-md ${categoryColors[fee.category] || "bg-secondary text-muted-foreground"}`}>
                         {fee.category}
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">{fee.frequency}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{fee.date}</TableCell>
+                    {/* Renderização segura da data */}
+                    <TableCell className="text-muted-foreground text-sm">{fee.date ? fee.date.split("T")[0] : ""}</TableCell>
                     <TableCell className="text-right font-semibold font-mono text-foreground">{formatCurrency(fee.amount)}</TableCell>
                     <TableCell>
                       <DropdownMenu>

@@ -11,38 +11,36 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
 import { Loader2 } from "lucide-react"
 
-import type { Transaction } from "@/src/lib/data"
+import type { FeeType } from "./addMonthlyFees" 
 
 
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onUpdate: (fee: Transaction) => void
-  fee: Transaction | null // Recebe a mensalidade que foi clicada
+  onUpdate: (fee: FeeType) => void
+  fee: FeeType | null
 }
 
 
-// Mensalidade do usuario - Componente para editar mensalidade existente.
 export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
   const [loading, setLoading] = useState(false)
-  const [description, setDescription] = useState("")
+  const [name, setName] = useState("")
   const [amount, setAmount] = useState("")
   const [category, setCategory] = useState("")
   const [frequency, setFrequency] = useState("Mensal")
   const [date, setDate] = useState("")
 
-
   useEffect(() => {
     if (fee && open) {
-      setDescription(fee.description)
+      setName(fee.name)
       setAmount(fee.amount.toString())
       setCategory(fee.category)
       setFrequency(fee.frequency)
-      setDate(fee.date.split("T")[0])
+      // Garantir que a data seja lida corretamente
+      setDate(fee.date ? fee.date.split("T")[0] : "") 
     }
   }, [fee, open])
 
-  // Função para lidar com o envio do formulário de edição
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!fee) return
@@ -50,19 +48,18 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
 
     try {
       const payload = {
-        description,
+        name,
         amount: parseFloat(amount),
         category,
         frequency,
-        date: date,
+        date: new Date(date).toISOString(),
       }
 
       await axios.put(`/api/db/monthlyFees/${fee.id}`, payload)
 
-      // Atualiza a lista na tela passando os dados novos
       onUpdate({
         ...fee,
-        description,
+        name,
         amount: parseFloat(amount),
         category,
         frequency,
@@ -79,7 +76,6 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
     }
   }
 
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-card border-border w-full sm:max-w-lg overflow-y-auto">
@@ -92,8 +88,8 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-2">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="edit-description" className="text-sm font-medium text-foreground">Serviço / Nome</Label>
-            <Input id="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} required className="bg-secondary/50 border-border" />
+            <Label htmlFor="edit-name" className="text-sm font-medium text-foreground">Serviço / Nome</Label>
+            <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} required className="bg-secondary/50 border-border" />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -136,22 +132,14 @@ export function EditMonthlyFee({ open, onOpenChange, onUpdate, fee }: Props) {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="edit-date" className="text-sm font-medium text-foreground">Data de Aquisição</Label>
-              <Input id="edit-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-secondary/50 border-border" />
+              <Input id="edit-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-secondary/50 border-border" />
             </div>
           </div>
 
-          <Button type="submit" disabled={loading || !description || !amount || !category} className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 shadow-lg shadow-emerald-500/20 mt-2" >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              "Salvar Alterações"
-            )}
+          <Button type="submit" disabled={loading || !name || !amount || !category || !date} className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 shadow-lg shadow-emerald-500/20 mt-2" >
+            {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Salvando...</> : "Salvar Alterações"}
           </Button>
         </form>
-
       </SheetContent>
     </Sheet>
   )

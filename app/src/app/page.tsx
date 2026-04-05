@@ -1,11 +1,16 @@
-import Link from "next/link";
+"use client";
 
-import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
+import Link from "next/link";
 import { Button } from "@/src/components/ui/button";
 import { Bot, Wallet, TrendingUp } from "lucide-react";
+import { useAuth } from "@/src/contexts/AuthContext";
+
 
 
 export default function Home() {
+  // Puxando o usuário para saber se ele está logado
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
 
@@ -24,22 +29,28 @@ export default function Home() {
   
           {/* Navegação / Auth */}
           <nav className="flex items-center gap-4">
-            <Show when={"signed-out"}>
-              <SignInButton mode="modal">
-                <Button variant="ghost" className="text-zinc-300 hover:text-white hover:bg-zinc-800">
-                  Entrar
+            {!user ? (
+              // Se NÃO estiver logado, mostra botões de Login e Cadastro
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" className="text-zinc-300 hover:text-white hover:bg-zinc-800">
+                    Entrar
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button className="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                    Começar Grátis
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              // Se JÁ ESTIVER logado, mostra o atalho para o sistema
+              <Link href="/main/dashboard">
+                <Button variant="ghost" className="text-emerald-500 hover:text-emerald-400 hover:bg-zinc-800 font-medium">
+                  Meu Dashboard
                 </Button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <Button className="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                  Começar Grátis
-                </Button>
-              </SignUpButton>
-            </Show>
-  
-            <Show when={"signed-in"}>
-              <UserButton />
-            </Show>
+              </Link>
+            )}
           </nav>
         </div>
       </header>
@@ -70,21 +81,19 @@ export default function Home() {
 
           {/* Botões de Ação */}
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Show when={"signed-out"}>
-              <SignUpButton mode="modal">
+            {!user ? (
+              <Link href="/register">
                 <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-lg h-12 px-8 neon-shadow">
                   Criar Conta Grátis
                 </Button>
-              </SignUpButton>
-            </Show>
-
-            <Show when={"signed-in"}>
+              </Link>
+            ) : (
               <Link href="/main/dashboard">
                 <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-lg h-12 px-8 neon-shadow">
                   Ir para Dashboard
                 </Button>
               </Link>
-            </Show>
+            )}
           </div>
 
           {/* Imagem/Mockup Abstrato (Efeito Visual) */}
@@ -130,7 +139,7 @@ export default function Home() {
               </div>
               <h3 className="mb-2 text-xl font-bold text-white">Mentor IA</h3>
               <p className="text-zinc-400">
-                Receba conselhos personalizados: &quot;Corte 20% em delivery e invista a diferença para comprar seu PC.&quot;
+                Receba conselhos personalizados: "Corte 20% em delivery e invista a diferença para comprar seu PC."
               </p>
             </div>
           </div>

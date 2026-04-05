@@ -1,26 +1,42 @@
+// src/app/api/db/goals/route.ts
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { prisma } from "@/src/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { z } from "zod";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/src/lib/auth"; // Nossa função!
 
 
-// Rota para lidar com operações relacionadas às metas
+// Função ajudante para pegar o ID logado
+async function getUserId() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  if (!token) return null;
+  
+  const payload = await verifyToken(token);
+  return payload?.userId as string | null;
+}
+
 export async function GET() {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const userId = await getUserId();
+  
+  if (!userId) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
 
-  const goals = await prisma.goal.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' }
-  });
-
-  return NextResponse.json(goals);
+  try {
+    const goals = await prisma.goal.findMany({
+      where: { userId: userId } // Usa o ID do nosso banco!
+    });
+    return NextResponse.json(goals);
+  } catch (error) {
+    return NextResponse.json({ error: "Erro ao buscar metas" }, { status: 500 });
+  }
 }
 
 
 // Rota para lidar com operações relacionadas a uma meta específica
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const createGoalSchema = z.object({

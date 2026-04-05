@@ -7,61 +7,64 @@ import { toast } from "sonner";
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Label } from "@/src/components/ui/label"
-// import { Checkbox } from "@/src/components/ui/checkbox"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/src/components/ui/sheet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
 import { Loader2 } from "lucide-react"
 
-import type { Transaction } from "@/src/lib/data"
 
+export type FeeType = {
+  id: string
+  name: string
+  amount: number
+  category: string
+  frequency: string
+  date: string
+}
 
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSave: (fee: Transaction) => void
+  onSave: (fee: FeeType) => void
 }
 
 
-// Mensalidades do usuario - Componente para criar nova mensalidade
 export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
   const [loading, setLoading] = useState(false)
-  const [description, setDescription] = useState("")
+  const [name, setName] = useState("") // Alterado de description para name
   const [amount, setAmount] = useState("")
   const [category, setCategory] = useState("")
   const [frequency, setFrequency] = useState("Mensal")
   const [date, setDate] = useState("")
 
-  // Função para resetar o formulário após salvar ou fechar o modal
   const resetForm = () => {
-    setDescription("")
+    setName("")
     setAmount("")
     setCategory("")
     setFrequency("Mensal")
     setDate("")
   }
 
-  // Função para lidar com o envio do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Montamos os dados que a nossa rota POST do backend está esperando
+      // Ajustado o payload para bater com o Prisma
       const payload = {
-        description,
+        name,
         amount: parseFloat(amount),
         category,
-        frequency: frequency,
-        date: date,
+        frequency,
+        date: new Date(date).toISOString(), // Garantir que vai como ISO string para o banco
       };
 
+      // Aqui NÃO precisa mais passar token nos headers, o cookie já faz o trabalho!
       const response = await axios.post('/api/db/monthlyFees', payload);
-      const newFee = response.data.fee;
+      const newFee = response.data; // Supondo que a API retorna o objeto criado diretamente
 
-      // Passando os dados salvos no banco para a tabela do frontend atualizar
       onSave({
         id: newFee.id,
-        description: newFee.name,
+        name: newFee.name,
         amount: Number(newFee.amount),
         category: newFee.category,
         frequency: newFee.frequency,
@@ -78,7 +81,7 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
       setLoading(false);
     }
   };
-  
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -92,8 +95,8 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-2">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="description" className="text-sm font-medium text-foreground">Serviço / Nome</Label>
-            <Input id="description" placeholder="Ex: Netflix, Internet, Academia..." value={description} onChange={(e) => setDescription(e.target.value)} required className="bg-secondary/50 border-border" />
+            <Label htmlFor="name" className="text-sm font-medium text-foreground">Serviço / Nome</Label>
+            <Input id="name" placeholder="Ex: Netflix, Internet, Academia..." value={name} onChange={(e) => setName(e.target.value)} required className="bg-secondary/50 border-border" />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -122,7 +125,7 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="frequency" className="text-sm font-medium text-foreground">Frequencia</Label>
+              <Label htmlFor="frequency" className="text-sm font-medium text-foreground">Frequência</Label>
               <Select value={frequency} onValueChange={setFrequency} required>
                 <SelectTrigger className="bg-secondary/50 border-border">
                   <SelectValue placeholder="Selecione" />
@@ -136,19 +139,12 @@ export function AddMonthlyFees({ open, onOpenChange, onSave }: Props) {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="date" className="text-sm font-medium text-foreground">Data</Label>
-              <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-secondary/50 border-border" />
+              <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-secondary/50 border-border" />
             </div>
           </div>
 
-          <Button type="submit" disabled={loading || !description || !amount || !category} className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 shadow-lg shadow-emerald-500/20 mt-2" >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              "Salvar Mensalidade"
-            )}
+          <Button type="submit" disabled={loading || !name || !amount || !category || !date} className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 shadow-lg shadow-emerald-500/20 mt-2" >
+            {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Salvando...</> : "Salvar Mensalidade"}
           </Button>
         </form>
       </SheetContent>

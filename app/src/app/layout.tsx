@@ -3,8 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 import { Toaster } from '@/src/components/ui/sonner'
-import { AuthSync } from '@/src/components/authenticate'
-import { ClerkProvider } from '@clerk/nextjs'
+import { AuthProvider } from '@/src/contexts/AuthContext'
 
 
 const inter = Inter({
@@ -32,13 +31,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <ClerkProvider>
+      <AuthProvider>
         <body className="font-sans antialiased">
-          <AuthSync />
           {children}
           <Toaster richColors position="top-right" />
         </body>
-      </ClerkProvider>
+      </AuthProvider>
     </html>
   )
 }
