@@ -16,17 +16,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/src/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/components/ui/select";
 import { CategorySelect } from "@/src/components/categories/categorySelect";
 
-import { monthlyFeeSchema, type MonthlyFeeInput } from "@/src/lib/schemas";
-import { createMonthlyFee } from "@/src/lib/actions/monthlyFees";
+import { transactionSchema, type TransactionInput } from "@/src/lib/schemas";
+import { createTransaction } from "@/src/lib/actions/transactions";
+import { dateToInput } from "@/src/lib/format";
 import type { CategoryDTO } from "@/src/lib/types";
 
 type Props = {
@@ -35,7 +29,7 @@ type Props = {
   categories: CategoryDTO[];
 };
 
-export function AddMonthlyFees({ open, onOpenChange, categories }: Props) {
+export function AddTransaction({ open, onOpenChange, categories }: Props) {
   const [loading, setLoading] = useState(false);
 
   const {
@@ -45,32 +39,32 @@ export function AddMonthlyFees({ open, onOpenChange, categories }: Props) {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<MonthlyFeeInput>({
-    resolver: zodResolver(monthlyFeeSchema),
+  } = useForm<TransactionInput>({
+    resolver: zodResolver(transactionSchema),
     defaultValues: {
-      name: "",
+      type: "EXPENSE",
       amount: 0,
+      description: "",
       categoryId: "",
-      frequency: "Mensal",
-      date: "",
+      date: dateToInput(new Date()),
     },
   });
 
+  const type = watch("type");
   const categoryId = watch("categoryId");
-  const frequency = watch("frequency");
 
-  // Mensalidade é sempre saída: só EXPENSE + BOTH
+  // Filtra categorias pelo tipo atual (BOTH aparece em ambos)
   const visibleCategories = useMemo(
-    () => categories.filter((c) => c.type === "EXPENSE" || c.type === "BOTH"),
-    [categories],
+    () => categories.filter((c) => c.type === type || c.type === "BOTH"),
+    [categories, type],
   );
 
-  const onSubmit = async (data: MonthlyFeeInput) => {
+  const onSubmit = async (data: TransactionInput) => {
     setLoading(true);
     try {
-      await createMonthlyFee(data);
-      toast.success("Mensalidade salva!");
-      reset();
+      await createTransaction(data);
+      toast.success("Lançamento salvo!");
+      reset({ ...data, description: "", amount: 0 });
       onOpenChange(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar.");
@@ -83,22 +77,56 @@ export function AddMonthlyFees({ open, onOpenChange, categories }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-card border-border w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="mb-6">
-          <SheetTitle className="text-foreground text-lg">Nova Mensalidade</SheetTitle>
+          <SheetTitle className="text-foreground text-lg">Novo Lançamento</SheetTitle>
           <SheetDescription className="text-muted-foreground">
-            Adicione uma nova assinatura ou conta fixa ao seu controle.
+            Registre uma entrada ou saída do seu dinheiro.
           </SheetDescription>
         </SheetHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 px-2">
+          {/* Toggle entrada/saída */}
+          <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-secondary/50">
+            <button
+              type="button"
+              onClick={() => {
+                setValue("type", "EXPENSE");
+                setValue("categoryId", "");
+              }}
+              className={`py-2 rounded-md text-sm font-medium transition ${
+                type === "EXPENSE"
+                  ? "bg-rose-500/20 text-rose-400"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Saída
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setValue("type", "INCOME");
+                setValue("categoryId", "");
+              }}
+              className={`py-2 rounded-md text-sm font-medium transition ${
+                type === "INCOME"
+                  ? "bg-emerald-500/20 text-emerald-400"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Entrada
+            </button>
+          </div>
+
           <div className="flex flex-col gap-2">
-            <Label htmlFor="name">Serviço / Nome</Label>
+            <Label htmlFor="description">Descrição</Label>
             <Input
-              id="name"
-              placeholder="Ex: Netflix, Internet, Academia..."
-              {...register("name")}
+              id="description"
+              placeholder="Ex: Almoço, Uber, Salário..."
+              {...register("description")}
               className="bg-secondary/50 border-border"
             />
-            {errors.name && <span className="text-xs text-rose-400">{errors.name.message}</span>}
+            {errors.description && (
+              <span className="text-xs text-rose-400">{errors.description.message}</span>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -110,12 +138,14 @@ export function AddMonthlyFees({ open, onOpenChange, categories }: Props) {
               min="0.01"
               placeholder="0,00"
               {...register("amount")}
-              className="bg-secondary/50 border-border font-mono"
+              className="bg-secondary/50 border-border font-mono text-lg"
             />
-            {errors.amount && <span className="text-xs text-rose-400">{errors.amount.message}</span>}
+            {errors.amount && (
+              <span className="text-xs text-rose-400">{errors.amount.message}</span>
+            )}
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label>Categoria</Label>
               <CategorySelect
@@ -129,22 +159,6 @@ export function AddMonthlyFees({ open, onOpenChange, categories }: Props) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label>Frequência</Label>
-              <Select
-                value={frequency}
-                onValueChange={(v) => setValue("frequency", v as MonthlyFeeInput["frequency"])}
-              >
-                <SelectTrigger className="bg-secondary/50 border-border">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Mensal">Mensal</SelectItem>
-                  <SelectItem value="Anual">Anual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2">
               <Label htmlFor="date">Data</Label>
               <Input
                 id="date"
@@ -152,7 +166,6 @@ export function AddMonthlyFees({ open, onOpenChange, categories }: Props) {
                 {...register("date")}
                 className="bg-secondary/50 border-border"
               />
-              {errors.date && <span className="text-xs text-rose-400">{errors.date.message}</span>}
             </div>
           </div>
 
@@ -167,7 +180,7 @@ export function AddMonthlyFees({ open, onOpenChange, categories }: Props) {
                 Salvando...
               </>
             ) : (
-              "Salvar Mensalidade"
+              "Salvar Lançamento"
             )}
           </Button>
         </form>

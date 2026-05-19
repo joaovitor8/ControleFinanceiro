@@ -3,7 +3,16 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MoreHorizontal, Pencil, Plus, Receipt, Search, Trash2 } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  Wallet,
+} from "lucide-react";
 
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -30,60 +39,65 @@ import {
 } from "@/src/components/ui/table";
 import { ConfirmDialog } from "@/src/components/ui/confirm-dialog";
 
-import { AddMonthlyFees } from "@/src/components/monthlyFees/addMonthlyFees";
-import { EditMonthlyFee } from "@/src/components/monthlyFees/editMonthlyFees";
+import { AddTransaction } from "@/src/components/transactions/addTransaction";
+import { EditTransaction } from "@/src/components/transactions/editTransaction";
 
-import { deleteMonthlyFee } from "@/src/lib/actions/monthlyFees";
+import { deleteTransaction } from "@/src/lib/actions/transactions";
 import { categoryIconMap, getCategoryColors } from "@/src/lib/constants";
 import { formatCurrency, formatDateBR } from "@/src/lib/format";
-import type { CategoryDTO, MonthlyFeeDTO } from "@/src/lib/types";
+import type { CategoryDTO, TransactionDTO } from "@/src/lib/types";
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 10;
 
 type Props = {
-  fees: MonthlyFeeDTO[];
+  transactions: TransactionDTO[];
   categories: CategoryDTO[];
 };
 
-export function MonthlyFeesView({ fees, categories }: Props) {
+export function TransactionsView({ transactions, categories }: Props) {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "INCOME" | "EXPENSE">("all");
   const [page, setPage] = useState(1);
-  const [monthFilter, setMonthFilter] = useState<string>("all");
 
-  const [feeToEdit, setFeeToEdit] = useState<MonthlyFeeDTO | null>(null);
-  const [feeToDelete, setFeeToDelete] = useState<MonthlyFeeDTO | null>(null);
+  const [editTarget, setEditTarget] = useState<TransactionDTO | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<TransactionDTO | null>(null);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const s = search.toLowerCase();
-    return fees.filter((fee) => {
+    return transactions.filter((t) => {
       const matchSearch =
-        fee.name.toLowerCase().includes(s) ||
-        fee.category.name.toLowerCase().includes(s);
-      const matchMonth = monthFilter === "all" || fee.date.startsWith(monthFilter);
-      return matchSearch && matchMonth;
+        t.description.toLowerCase().includes(s) ||
+        t.category.name.toLowerCase().includes(s);
+      const matchType = typeFilter === "all" || t.type === typeFilter;
+      return matchSearch && matchType;
     });
-  }, [fees, search, monthFilter]);
+  }, [transactions, search, typeFilter]);
+
+  const totals = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    for (const t of filtered) {
+      if (t.type === "INCOME") income += t.amount;
+      else expense += t.amount;
+    }
+    return { income, expense, balance: income - expense };
+  }, [filtered]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  const uniqueMonths = useMemo(() => {
-    const months = new Set(fees.map((f) => f.date.slice(0, 7)).filter(Boolean));
-    return Array.from(months).sort().reverse();
-  }, [fees]);
-
   const handleDelete = async () => {
-    if (!feeToDelete) return;
+    if (!deleteTarget) return;
     try {
-      await deleteMonthlyFee(feeToDelete.id);
-      toast.success("Mensalidade removida!");
+      await deleteTransaction(deleteTarget.id);
+      toast.success("Lançamento removido!");
       router.refresh();
     } catch {
-      toast.error("Erro ao excluir mensalidade.");
+      toast.error("Erro ao excluir lançamento.");
     }
   };
 
@@ -92,27 +106,53 @@ export function MonthlyFeesView({ fees, categories }: Props) {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">
-            Mensalidades
+            Lançamentos
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Gerencie suas assinaturas e contas fixas mensais
+            Entradas e saídas do seu dia-a-dia
           </p>
         </div>
 
         <Button
-          onClick={() => setModalOpen(true)}
+          onClick={() => setAddOpen(true)}
           className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold shadow-lg shadow-emerald-500/20"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Nova Mensalidade
+          Novo Lançamento
         </Button>
+      </div>
+
+      {/* Resumo do filtro atual */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-xs text-muted-foreground">Entradas</p>
+          <p className="text-base font-bold font-mono text-emerald-400 mt-1">
+            {formatCurrency(totals.income)}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-xs text-muted-foreground">Saídas</p>
+          <p className="text-base font-bold font-mono text-rose-400 mt-1">
+            {formatCurrency(totals.expense)}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-xs text-muted-foreground">Saldo</p>
+          <p
+            className={`text-base font-bold font-mono mt-1 ${
+              totals.balance >= 0 ? "text-foreground" : "text-rose-400"
+            }`}
+          >
+            {formatCurrency(totals.balance)}
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar serviço..."
+            placeholder="Buscar descrição..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -123,29 +163,19 @@ export function MonthlyFeesView({ fees, categories }: Props) {
         </div>
 
         <Select
-          value={monthFilter}
+          value={typeFilter}
           onValueChange={(v) => {
-            setMonthFilter(v);
+            setTypeFilter(v as typeof typeFilter);
             setPage(1);
           }}
         >
           <SelectTrigger className="w-40 bg-card border-border">
-            <SelectValue placeholder="Período" />
+            <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os Meses</SelectItem>
-            {uniqueMonths.map((m) => {
-              const [year, month] = m.split("-");
-              const label = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleString(
-                "pt-BR",
-                { month: "short", year: "numeric" },
-              );
-              return (
-                <SelectItem key={m} value={m}>
-                  <span className="capitalize">{label}</span>
-                </SelectItem>
-              );
-            })}
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="INCOME">Entradas</SelectItem>
+            <SelectItem value="EXPENSE">Saídas</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -153,20 +183,20 @@ export function MonthlyFeesView({ fees, categories }: Props) {
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 px-6">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary mb-4">
-            <Receipt className="h-7 w-7 text-muted-foreground" />
+            <Wallet className="h-7 w-7 text-muted-foreground" />
           </div>
           <h3 className="text-base font-semibold text-foreground mb-1">
-            Nenhuma mensalidade encontrada
+            Nenhum lançamento ainda
           </h3>
           <p className="text-sm text-muted-foreground text-center max-w-xs mb-4">
-            Comece adicionando suas assinaturas para ter controle dos seus gastos fixos.
+            Registre suas entradas e saídas para ver para onde seu dinheiro está indo.
           </p>
           <Button
-            onClick={() => setModalOpen(true)}
+            onClick={() => setAddOpen(true)}
             className="bg-emerald-500 text-background hover:bg-emerald-600 font-semibold"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Nova Mensalidade
+            Novo Lançamento
           </Button>
         </div>
       ) : (
@@ -176,16 +206,13 @@ export function MonthlyFeesView({ fees, categories }: Props) {
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Serviço
+                    Descrição
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Categoria
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Frequência
-                  </TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Data de Aquisição
+                    Data
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right">
                     Valor
@@ -195,31 +222,47 @@ export function MonthlyFeesView({ fees, categories }: Props) {
               </TableHeader>
 
               <TableBody>
-                {paginated.map((fee) => {
-                  const Icon = categoryIconMap[fee.category.icon];
-                  const colors = getCategoryColors(fee.category.color);
+                {paginated.map((t) => {
+                  const Icon = categoryIconMap[t.category.icon] ?? Wallet;
+                  const colors = getCategoryColors(t.category.color);
+                  const isIncome = t.type === "INCOME";
                   return (
                     <TableRow
-                      key={fee.id}
+                      key={t.id}
                       className="border-border hover:bg-secondary/30 transition-colors"
                     >
-                      <TableCell className="font-medium text-foreground">{fee.name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
+                            {isIncome ? (
+                              <ArrowUpRight className="h-4 w-4 text-emerald-400" />
+                            ) : (
+                              <ArrowDownRight className="h-4 w-4 text-rose-400" />
+                            )}
+                          </div>
+                          <span className="font-medium text-foreground">
+                            {t.description}
+                          </span>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <span
                           className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md ${colors.badge}`}
                         >
-                          {Icon && <Icon className="h-3 w-3" />}
-                          {fee.category.name}
+                          <Icon className="h-3 w-3" />
+                          {t.category.name}
                         </span>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {fee.frequency}
+                        {formatDateBR(t.date)}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {formatDateBR(fee.date)}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold font-mono text-foreground">
-                        {formatCurrency(fee.amount)}
+                      <TableCell
+                        className={`text-right font-semibold font-mono ${
+                          isIncome ? "text-emerald-400" : "text-rose-400"
+                        }`}
+                      >
+                        {isIncome ? "+" : "-"}
+                        {formatCurrency(t.amount)}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -228,7 +271,7 @@ export function MonthlyFeesView({ fees, categories }: Props) {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                              aria-label="Ações da mensalidade"
+                              aria-label="Ações do lançamento"
                             >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
@@ -237,15 +280,15 @@ export function MonthlyFeesView({ fees, categories }: Props) {
                             <DropdownMenuItem
                               className="gap-2 cursor-pointer"
                               onClick={() => {
-                                setFeeToEdit(fee);
-                                setEditModalOpen(true);
+                                setEditTarget(t);
+                                setEditOpen(true);
                               }}
                             >
                               <Pencil className="h-3.5 w-3.5" /> Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="gap-2 cursor-pointer text-rose-400 focus:text-rose-400"
-                              onClick={() => setFeeToDelete(fee)}
+                              onClick={() => setDeleteTarget(t)}
                             >
                               <Trash2 className="h-3.5 w-3.5" /> Excluir
                             </DropdownMenuItem>
@@ -264,7 +307,7 @@ export function MonthlyFeesView({ fees, categories }: Props) {
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-border px-4 py-3">
           <p className="text-xs text-muted-foreground">
-            {filtered.length} mensalidade(s) encontrada(s)
+            {filtered.length} lançamento(s)
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -292,22 +335,18 @@ export function MonthlyFeesView({ fees, categories }: Props) {
         </div>
       )}
 
-      <AddMonthlyFees
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        categories={categories}
-      />
-      <EditMonthlyFee
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        fee={feeToEdit}
+      <AddTransaction open={addOpen} onOpenChange={setAddOpen} categories={categories} />
+      <EditTransaction
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        transaction={editTarget}
         categories={categories}
       />
       <ConfirmDialog
-        open={!!feeToDelete}
-        onOpenChange={(v) => !v && setFeeToDelete(null)}
-        title="Excluir mensalidade?"
-        description={`A mensalidade "${feeToDelete?.name}" será removida permanentemente.`}
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Excluir lançamento?"
+        description={`O lançamento "${deleteTarget?.description}" será removido permanentemente.`}
         confirmLabel="Excluir"
         destructive
         onConfirm={handleDelete}

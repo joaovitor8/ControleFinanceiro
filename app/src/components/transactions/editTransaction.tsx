@@ -12,32 +12,24 @@ import { Label } from "@/src/components/ui/label";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/src/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/components/ui/select";
 import { CategorySelect } from "@/src/components/categories/categorySelect";
 
-import { monthlyFeeSchema, type MonthlyFeeInput } from "@/src/lib/schemas";
-import { updateMonthlyFee } from "@/src/lib/actions/monthlyFees";
+import { transactionSchema, type TransactionInput } from "@/src/lib/schemas";
+import { updateTransaction } from "@/src/lib/actions/transactions";
 import { dateToInput } from "@/src/lib/format";
-import type { CategoryDTO, MonthlyFeeDTO } from "@/src/lib/types";
+import type { CategoryDTO, TransactionDTO } from "@/src/lib/types";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  fee: MonthlyFeeDTO | null;
+  transaction: TransactionDTO | null;
   categories: CategoryDTO[];
 };
 
-export function EditMonthlyFee({ open, onOpenChange, fee, categories }: Props) {
+export function EditTransaction({ open, onOpenChange, transaction, categories }: Props) {
   const [loading, setLoading] = useState(false);
 
   const {
@@ -47,43 +39,43 @@ export function EditMonthlyFee({ open, onOpenChange, fee, categories }: Props) {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<MonthlyFeeInput>({
-    resolver: zodResolver(monthlyFeeSchema),
+  } = useForm<TransactionInput>({
+    resolver: zodResolver(transactionSchema),
     defaultValues: {
-      name: "",
+      type: "EXPENSE",
       amount: 0,
+      description: "",
       categoryId: "",
-      frequency: "Mensal",
       date: "",
     },
   });
 
   useEffect(() => {
-    if (fee && open) {
+    if (transaction && open) {
       reset({
-        name: fee.name,
-        amount: fee.amount,
-        categoryId: fee.category.id,
-        frequency: fee.frequency as MonthlyFeeInput["frequency"],
-        date: dateToInput(fee.date),
+        type: transaction.type,
+        amount: transaction.amount,
+        description: transaction.description,
+        categoryId: transaction.category.id,
+        date: dateToInput(transaction.date),
       });
     }
-  }, [fee, open, reset]);
+  }, [transaction, open, reset]);
 
+  const type = watch("type");
   const categoryId = watch("categoryId");
-  const frequency = watch("frequency");
 
   const visibleCategories = useMemo(
-    () => categories.filter((c) => c.type === "EXPENSE" || c.type === "BOTH"),
-    [categories],
+    () => categories.filter((c) => c.type === type || c.type === "BOTH"),
+    [categories, type],
   );
 
-  const onSubmit = async (data: MonthlyFeeInput) => {
-    if (!fee) return;
+  const onSubmit = async (data: TransactionInput) => {
+    if (!transaction) return;
     setLoading(true);
     try {
-      await updateMonthlyFee(fee.id, data);
-      toast.success("Mensalidade atualizada!");
+      await updateTransaction(transaction.id, data);
+      toast.success("Lançamento atualizado!");
       onOpenChange(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao atualizar.");
@@ -96,17 +88,51 @@ export function EditMonthlyFee({ open, onOpenChange, fee, categories }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-card border-border w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="mb-6">
-          <SheetTitle className="text-foreground text-lg">Editar Mensalidade</SheetTitle>
-          <SheetDescription className="text-muted-foreground">
-            Altere os dados da sua assinatura ou conta fixa.
-          </SheetDescription>
+          <SheetTitle className="text-foreground text-lg">Editar Lançamento</SheetTitle>
         </SheetHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 px-2">
+          <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-secondary/50">
+            <button
+              type="button"
+              onClick={() => {
+                setValue("type", "EXPENSE");
+                setValue("categoryId", "");
+              }}
+              className={`py-2 rounded-md text-sm font-medium transition ${
+                type === "EXPENSE"
+                  ? "bg-rose-500/20 text-rose-400"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Saída
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setValue("type", "INCOME");
+                setValue("categoryId", "");
+              }}
+              className={`py-2 rounded-md text-sm font-medium transition ${
+                type === "INCOME"
+                  ? "bg-emerald-500/20 text-emerald-400"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Entrada
+            </button>
+          </div>
+
           <div className="flex flex-col gap-2">
-            <Label htmlFor="edit-name">Serviço / Nome</Label>
-            <Input id="edit-name" {...register("name")} className="bg-secondary/50 border-border" />
-            {errors.name && <span className="text-xs text-rose-400">{errors.name.message}</span>}
+            <Label htmlFor="edit-description">Descrição</Label>
+            <Input
+              id="edit-description"
+              {...register("description")}
+              className="bg-secondary/50 border-border"
+            />
+            {errors.description && (
+              <span className="text-xs text-rose-400">{errors.description.message}</span>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -117,14 +143,14 @@ export function EditMonthlyFee({ open, onOpenChange, fee, categories }: Props) {
               step="0.01"
               min="0.01"
               {...register("amount")}
-              className="bg-secondary/50 border-border font-mono"
+              className="bg-secondary/50 border-border font-mono text-lg"
             />
             {errors.amount && (
               <span className="text-xs text-rose-400">{errors.amount.message}</span>
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label>Categoria</Label>
               <CategorySelect
@@ -132,22 +158,9 @@ export function EditMonthlyFee({ open, onOpenChange, fee, categories }: Props) {
                 value={categoryId}
                 onChange={(id) => setValue("categoryId", id)}
               />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label>Frequência</Label>
-              <Select
-                value={frequency}
-                onValueChange={(v) => setValue("frequency", v as MonthlyFeeInput["frequency"])}
-              >
-                <SelectTrigger className="bg-secondary/50 border-border">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Mensal">Mensal</SelectItem>
-                  <SelectItem value="Anual">Anual</SelectItem>
-                </SelectContent>
-              </Select>
+              {errors.categoryId && (
+                <span className="text-xs text-rose-400">{errors.categoryId.message}</span>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -164,7 +177,7 @@ export function EditMonthlyFee({ open, onOpenChange, fee, categories }: Props) {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 shadow-lg shadow-emerald-500/20 mt-2"
+            className="w-full bg-emerald-500 text-background hover:bg-emerald-600 font-semibold h-11 mt-2"
           >
             {loading ? (
               <>
